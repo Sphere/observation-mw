@@ -35,8 +35,20 @@ const getAllMentorForMentee = async (req, res) => {
     data: getObservationForMenteeResponse,
   });
 };
+const getAllObservation = async (req, res) => {
+  const mentorId = req.query.mentorId;
+  const getAllMenteeResponse = await pool.query(
+    `SELECT DISTINCT mentor_mentee_observation.observation_id FROM mentor_mentee JOIN mentor_mentee_observation ON mentor_mentee.mentor_mentee_id = mentor_mentee_observation.mentor_mentee_realtion_id WHERE mentor_id=$1`,
+    [mentorId]
+  );
+  res.status(200).json({
+    message: "SUCCESS",
+    data: getAllMenteeResponse,
+  });
+};
 module.exports = {
   getAllMenteeForMentor,
   getObservationForMentee,
   getAllMentorForMentee,
+  getAllObservation,
 };
