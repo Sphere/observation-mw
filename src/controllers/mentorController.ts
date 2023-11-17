@@ -1,4 +1,4 @@
-import pool from "./../utils/postgres-connection";
+import { pool } from "./../utils/postgres-connection";
 
 const getAllMenteeForMentor = async (req, res) => {
   const mentorId = req.query.mentorId;
