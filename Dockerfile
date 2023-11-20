@@ -1,8 +1,8 @@
 FROM node:16
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install
+RUN yarn install
 
-RUN npm run build
+RUN yarn build
 
-CMD ["node", "./dist/index.js"]
+CMD ["yarn", "start"]

@@ -1,6 +1,6 @@
-const mentorController = require("./../controllers/relationshipController");
-import express from "express";
-export const mentorRoute = express.Router();
+const mentorController = require("./../controllers/mentorController");
+import { Router } from 'express'
+export const mentorRoute = Router();
 mentorRoute.get(
   "/getAllMenteeForMentor",
   mentorController.getAllMenteeForMentor

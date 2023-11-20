@@ -1,6 +1,6 @@
-import express from "express";
+import { Router } from 'express'
 const relationshipController = require("./../controllers/relationshipController");
-export const relationshipRoute = express.Router();
+ export const relationshipRoute = Router();
 relationshipRoute.post(
   "/addRelationship",
   relationshipController.addRelationship

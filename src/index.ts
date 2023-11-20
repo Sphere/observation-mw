@@ -1,4 +1,4 @@
-import { express } from "express";
+import express from "express";
 import { router } from "./routes/index";
 const app = express();
 app.use("/v1", router);
