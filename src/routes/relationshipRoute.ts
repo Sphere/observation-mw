@@ -1,7 +1,7 @@
 import express from "express";
 const relationshipController = require("./../controllers/relationshipController");
 export const relationshipRoute = express.Router();
-relationshipRouter.post(
+relationshipRoute.post(
   "/addRelationship",
   relationshipController.addRelationship
 );

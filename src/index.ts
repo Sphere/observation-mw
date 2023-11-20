@@ -1,5 +1,5 @@
-import express from "express";
-import { router } from "./src/routes/index";
+import { express } from "express";
+import { router } from "./routes/index";
 const app = express();
 app.use("/v1", router);
 app.listen(3000, () => {

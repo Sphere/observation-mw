@@ -1,4 +1,5 @@
 const mentorController = require("./../controllers/relationshipController");
+import express from "express";
 export const mentorRoute = express.Router();
 mentorRoute.get(
   "/getAllMenteeForMentor",
@@ -11,5 +12,5 @@ mentorRoute.get(
 
 mentorRoute.get(
   "/getObservationForMentee",
-  mentorRouter.getObservationForMentee
+  mentorController.getObservationForMentee
 );
