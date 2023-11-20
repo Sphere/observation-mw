@@ -20,7 +20,8 @@
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
     "sonarqube-scanner": "^3.3.0",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.9.1",
