@@ -5,12 +5,16 @@ mentorRoute.get(
   "/getAllMenteeForMentor",
   mentorController.getAllMenteeForMentor
 );
-mentorRoute.get(
-  "/getAllMentorForMentee",
-  mentorController.getAllMentorForMentee
-);
 
 mentorRoute.get(
   "/getObservationForMentee",
   mentorController.getObservationForMentee
+);
+mentorRoute.get(
+  "/getAllMentor",
+  mentorController.getAllMentor
+);
+mentorRoute.get(
+  "/getAllObservation",
+  mentorController.getAllObservation
 );
