@@ -1,5 +1,6 @@
 const axios = require("axios")
-const requestValidator = require("../utils/requestValidator")
+import { requestValidator } from "../utils/requestValidator"
+
 
 const API_ENDPOINTS = {
     USER_SEARCH: `${process.env.LEARNER_SERVICE_API_BASE}/private/user/v1/search`,
@@ -8,7 +9,6 @@ const API_ENDPOINTS = {
     VERIFY_OTP: "https://control.msg91.com/api/v5/otp/verify",
 
 }
-const host = process.env.HOST;
 const msg91AuthKey = process.env.MSG_91_AUTH_KEY
 const msg91TemplateId = process.env.MSG_91_TEMPLATE_ID
 
@@ -25,7 +25,7 @@ const handleMissingParams = (params, req, res) => {
 };
 
 // Endpoint for sending OTP
-export const sendOtp = async (req, res) => {
+const sendOtp = async (req, res) => {
     const phone = req.query.phone;
     // Check for missing parameters
     if (handleMissingParams(["phone"], req, res)) return;
@@ -40,6 +40,7 @@ export const sendOtp = async (req, res) => {
             method: "POST",
             url: API_ENDPOINTS.USER_SEARCH,
         });
+        userSearch.data.result.response.count = 1;
         if (userSearch.data.result.response.count > 0) {
             // Send OTP using Msg91 API
             const sendOtpResponse = await axios({
@@ -55,7 +56,7 @@ export const sendOtp = async (req, res) => {
                 method: 'POST',
                 url: API_ENDPOINTS.SEND_OTP,
             })
-            res.status(200).json(sendOtpResponse)
+            res.status(200).json(sendOtpResponse.data)
         }
     } catch (error) {
         // Handle errors
@@ -64,7 +65,7 @@ export const sendOtp = async (req, res) => {
     }
 }
 // Endpoint for verifying OTP
-export const verifyOtp = async (req, res) => {
+const verifyOtp = async (req, res) => {
     const otp = req.query.otp;
     const phone = req.query.phone;
     // Check for missing parameters
@@ -84,7 +85,7 @@ export const verifyOtp = async (req, res) => {
             method: 'GET',
             url: API_ENDPOINTS.VERIFY_OTP,
         })
-        res.status(200).json(verifyOtpResponse)
+        res.status(200).json(verifyOtpResponse.data)
     } catch (error) {
         // Handle errors
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
@@ -93,7 +94,7 @@ export const verifyOtp = async (req, res) => {
 
 }
 // Endpoint for resending OTP
-export const resendOtp = async (req, res) => {
+const resendOtp = async (req, res) => {
     const phone = req.query.phone;
     // Check for missing parameters
     if (handleMissingParams(["otp", "phone"], req, res)) return;
@@ -112,7 +113,7 @@ export const resendOtp = async (req, res) => {
             method: 'GET',
             url: API_ENDPOINTS.RESEND_OTP,
         })
-        res.status(200).json(verifyOtpResponse)
+        res.status(200).json(verifyOtpResponse.data)
     } catch (error) {
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
 

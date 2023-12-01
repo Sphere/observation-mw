@@ -1,4 +1,4 @@
-export function validateRequestBody(requiredParams, requestBody) {
+export function requestValidator(requiredParams, requestBody) {
     const missingParams = [];
 
     for (const param of requiredParams) {
@@ -9,7 +9,6 @@ export function validateRequestBody(requiredParams, requestBody) {
 
     return missingParams;
 }
-
 // Example usage:
 // const requiredParams = ['name', 'email', 'age'];
 // const requestBody = {
