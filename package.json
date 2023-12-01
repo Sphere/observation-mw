@@ -6,25 +6,37 @@
   "scripts": {
     "build": "tsc -p .",
     "dev": "ts-node-dev src/index.ts",
-    "start": "node dist/src/index.js"
+    "start": "node dist/src/index.js",
+    "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "axios": "^1.6.2",
+    "chai": "^4.3.10",
     "del": "^7.1.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",
     "gulpclass": "^0.2.0",
+    "mocha": "^10.2.0",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
+    "sendotp": "^1.2.9",
     "sonarqube-scanner": "^3.3.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/node": "^20.9.1",
+    "@types/chai-http": "^4.2.0",
+    "@types/jest": "^29.5.10",
+    "@types/node": "^20.10.1",
+    "chai-http": "^4.4.0",
+    "chai-spies": "^1.1.0",
+    "jest-mock-axios": "^4.7.3",
     "ts-node": "^10.9.1"
   }
 }
