@@ -1,5 +1,6 @@
 const axios = require("axios")
 import { requestValidator } from "../utils/requestValidator"
+import { logger } from "../utils/logger"
 
 
 const API_ENDPOINTS = {
@@ -16,6 +17,7 @@ const msg91TemplateId = process.env.MSG_91_TEMPLATE_ID
 const handleMissingParams = (params, req, res) => {
     const missingParams = requestValidator(params, req.query);
     if (missingParams.length > 0) {
+        logger.info(missingParams, "Paramters missing")
         return res.status(400).json({
             "type": "Failed",
             "error": `Missing parameters: ${missingParams.join(', ')}`
@@ -27,6 +29,7 @@ const handleMissingParams = (params, req, res) => {
 // Endpoint for sending OTP
 const sendOtp = async (req, res) => {
     const phone = req.query.phone;
+    logger.info('Entered into send otp route');
     // Check for missing parameters
     if (handleMissingParams(["phone"], req, res)) return;
     try {
@@ -41,6 +44,7 @@ const sendOtp = async (req, res) => {
             url: API_ENDPOINTS.USER_SEARCH,
         });
         userSearch.data.result.response.count = 1;
+        logger.info(userSearch.data.result.response, "User search reponse from learner service")
         if (userSearch.data.result.response.count > 0) {
             // Send OTP using Msg91 API
             const sendOtpResponse = await axios({
@@ -60,6 +64,7 @@ const sendOtp = async (req, res) => {
         }
     } catch (error) {
         // Handle errors
+        logger.error(error, "Something went wrong while sending OTP")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
 
     }
@@ -72,6 +77,7 @@ const verifyOtp = async (req, res) => {
     if (handleMissingParams(["otp", "phone"], req, res)) return;
     try {
         // Verify OTP using Msg91 API
+        logger.info("Inside verify OTP route");
         const verifyOtpResponse = await axios({
             params: {
                 mobile: phone,
@@ -88,6 +94,7 @@ const verifyOtp = async (req, res) => {
         res.status(200).json(verifyOtpResponse.data)
     } catch (error) {
         // Handle errors
+        logger.error(error, "Something went wrong while sending OTP")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
 
     }
@@ -95,8 +102,9 @@ const verifyOtp = async (req, res) => {
 }
 // Endpoint for resending OTP
 const resendOtp = async (req, res) => {
-    const phone = req.query.phone;
+    logger.info("Inside resend OTP route")
     // Check for missing parameters
+    const phone = req.query.phone;
     if (handleMissingParams(["otp", "phone"], req, res)) return;
     try {
         // Resend OTP using Msg91 API
@@ -115,6 +123,7 @@ const resendOtp = async (req, res) => {
         })
         res.status(200).json(verifyOtpResponse.data)
     } catch (error) {
+        logger.error(error, "Something went wrong while sending OTP")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
 
     }
