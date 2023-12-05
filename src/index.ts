@@ -3,6 +3,6 @@ import { router } from "./routes/index";
 import { logger } from "./utils/logger";
 const app = express();
 app.use("/v1", router);
-app.listen(3000, () => {
-  logger.info("Sever listening on port 3000");
+app.listen(3009, () => {
+  logger.info("Sever listening on port 3009");
 });
