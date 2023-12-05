@@ -15,7 +15,7 @@ const msg91TemplateId = process.env.MSG_91_TEMPLATE_ID
 
 // Function to handle missing parameters and return an appropriate response
 const handleMissingParams = (params, req, res) => {
-    const missingParams = requestValidator(params, req.params);
+    const missingParams = requestValidator(params, req.query);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
         return res.status(400).json({
@@ -28,7 +28,8 @@ const handleMissingParams = (params, req, res) => {
 
 // Endpoint for sending OTP
 const sendOtp = async (req, res) => {
-    const phone = req.params.phone;
+    const phone = req.query.phone;
+    console.log(phone)
     logger.info('Entered into send otp route');
     // Check for missing parameters
     if (handleMissingParams(["phone"], req, res)) return;
@@ -71,8 +72,8 @@ const sendOtp = async (req, res) => {
 }
 // Endpoint for verifying OTP
 const verifyOtp = async (req, res) => {
-    const otp = req.params.otp;
-    const phone = req.params.phone;
+    const otp = req.query.otp;
+    const phone = req.query.phone;
     // Check for missing parameters
     if (handleMissingParams(["otp", "phone"], req, res)) return;
     try {
@@ -104,7 +105,7 @@ const verifyOtp = async (req, res) => {
 const resendOtp = async (req, res) => {
     logger.info("Inside resend OTP route")
     // Check for missing parameters
-    const phone = req.params.phone;
+    const phone = req.query.phone;
     if (handleMissingParams(["otp", "phone"], req, res)) return;
     try {
         // Resend OTP using Msg91 API
