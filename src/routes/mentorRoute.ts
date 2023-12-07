@@ -10,11 +10,3 @@ mentorRoute.get(
   "/getObservationForMentee",
   mentorController.getObservationForMentee
 );
-mentorRoute.get(
-  "/getAllMentor",
-  mentorController.getAllMentor
-);
-mentorRoute.get(
-  "/getAllObservation",
-  mentorController.getAllObservation
-);

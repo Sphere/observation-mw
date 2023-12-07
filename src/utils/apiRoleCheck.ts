@@ -1,0 +1,4 @@
+const whiteListApi = {
+    "route": "",
+    "rolesRequired": []
+}
