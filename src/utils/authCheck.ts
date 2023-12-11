@@ -1,6 +1,9 @@
 import { Keycloak } from "keycloak-backend"
+import { logger } from "./logger";
 export let authCheck = async (req, res, next) => {
     let authenticatedToken = req.headers["x-authenticated-user-token"];
+    logger.info('Entered into auth check');
+    logger.info(authenticatedToken)
     if (!authenticatedToken) {
         return res.status(401).json({ error: 'Unauthorized - Token missing' });
     }
@@ -15,6 +18,7 @@ export let authCheck = async (req, res, next) => {
         const decodedTokenArray = token.content.sub.split(":")
         const userId = decodedTokenArray[decodedTokenArray.length - 1]
         req.userId = userId
+        console.log(req.userId)
         next();
     } catch (error) {
         console.log(error)
