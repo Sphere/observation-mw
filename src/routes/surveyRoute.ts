@@ -6,3 +6,7 @@ surveyRoute.get(
     surveyController.getSurveyDetails
 );
 
+surveyRoute.post(
+    "/verifySurveyLink",
+    surveyController.verifySurveyLink
+);
