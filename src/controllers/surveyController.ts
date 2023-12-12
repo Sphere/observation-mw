@@ -11,7 +11,7 @@ import { userSearch } from "../utils/userSearch"
 const API_ENDPOINTS = {
     "getSurveyDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/surveys/details`,
     "verifySurveyLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
-    "sendOtp": `${process.env.HOST}api/observationmw/v1/otp/sendOtp`
+    "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`
 }
 
 // Function to handle missing parameters and return an appropriate response
@@ -110,7 +110,7 @@ const surveyOtpVerification = async (req, res) => {
                     "X-authenticated-user-token": userToken
                 },
                 method: 'GET',
-                url: `${API_ENDPOINTS.sendOtp}`,
+                url: `${API_ENDPOINTS.verifyOtp}`,
             })
         } catch (error) {
             logger.error(error, "Something went wrong while survey otp verification")
@@ -124,7 +124,7 @@ const surveyOtpVerification = async (req, res) => {
                 mentee_id,
                 mentor_name: mentorDetails.firstName + mentorDetails.lastName,
                 mentee_name: menteeDetails.firstName + menteeDetails.lastName,
-                mentee_designation: menteeDetails.profileDetails.profileReq.professionalDetails.designation,
+                mentee_designation: menteeDetails.profileDetails.profileReq.professionalDetails.designation || "Dummy designation",
                 observation_id
 
             };
