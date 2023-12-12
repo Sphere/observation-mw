@@ -11,7 +11,7 @@ import { userSearch } from "../utils/userSearch"
 const API_ENDPOINTS = {
     "getSurveyDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/surveys/details`,
     "verifySurveyLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
-    "sendOtp": `${process.env.HOST}/api/v1/otp/sendOtp`
+    "sendOtp": `${process.env.HOST}/api/observationmw/v1/otp/sendOtp`
 }
 
 // Function to handle missing parameters and return an appropriate response
