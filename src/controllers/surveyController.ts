@@ -16,7 +16,7 @@ const API_ENDPOINTS = {
 
 // Function to handle missing parameters and return an appropriate response
 const handleMissingParams = (params, req, res) => {
-    const missingParams = requestValidator(params, req.query);
+    const missingParams = requestValidator(params, req.body);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
         return res.status(400).json({
