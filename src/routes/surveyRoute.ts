@@ -5,8 +5,11 @@ surveyRoute.get(
     "/getSurveyDetails",
     surveyController.getSurveyDetails
 );
-
 surveyRoute.post(
     "/verifySurveyLink",
     surveyController.verifySurveyLink
+);
+surveyRoute.post(
+    "/surveyOtpVerification",
+    surveyController.surveyOtpVerification
 );

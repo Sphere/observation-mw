@@ -28,11 +28,14 @@
     "mocha": "^10.2.0",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
     "pino": "^8.16.2",
     "sendotp": "^1.2.9",
+    "sequelize": "^6.35.1",
     "sonarqube-scanner": "^3.3.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/chai-http": "^4.2.0",
