@@ -16,8 +16,7 @@ const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConn
 // Define the MentoringObservation model
 export const MentoringObservation = sequelize.define('mentoring_observation', {
     uuid_id: {
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.literal('uuid_generate_v4()'),
+        type: DataTypes.STRING(250),
         primaryKey: true,
     },
     mentoring_relationship_id: {
