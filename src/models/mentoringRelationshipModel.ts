@@ -1,5 +1,17 @@
-const { DataTypes } = require("sequelize");
-import { sequelize } from "../utils/postgres-sequelize"
+import { Sequelize, DataTypes } from 'sequelize';
+
+const postgresConnectionDetails = {
+    database: process.env.POSTGRES_DATABASE,
+    host: process.env.POSTGRES_HOST,
+    password: process.env.POSTGRES_PASSWORD,
+    port: Number(process.env.POSTGRES_PORT),
+    user: process.env.POSTGRES_USER
+}
+const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConnectionDetails.user, postgresConnectionDetails.password, {
+    host: postgresConnectionDetails.host,
+    port: postgresConnectionDetails.port,
+    dialect: 'postgres'
+})
 
 // Define the MentoringRelationship model
 export const MentoringRelationship = sequelize.define('mentoring_relationship', {
@@ -38,5 +50,5 @@ sequelize.sync({ force: true })
         console.error('Error creating MentoringRelationship table:', error);
     });
 
+
 // Export the model for use in other parts of your application
-module.exports = MentoringRelationship;

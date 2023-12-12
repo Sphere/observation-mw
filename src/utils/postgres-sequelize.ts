@@ -8,6 +8,7 @@ const postgresConnectionDetails = {
     port: Number(process.env.POSTGRES_PORT),
     user: process.env.POSTGRES_USER
 }
+console.log(postgresConnectionDetails)
 export const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConnectionDetails.user, postgresConnectionDetails.password, {
     host: postgresConnectionDetails.host,
     port: postgresConnectionDetails.port,
