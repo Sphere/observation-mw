@@ -13,7 +13,6 @@ const API_ENDPOINTS = {
     "verifySurveyLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
     "sendOtp": `${process.env.HOST}/api/v1/otp/sendOtp`
 }
-const uuidV4 = uuid.v4();
 
 // Function to handle missing parameters and return an appropriate response
 const handleMissingParams = (params, req, res) => {
@@ -84,6 +83,7 @@ const getSurveyDetails = async (req, res) => {
 
 };
 const surveyOtpVerification = async (req, res) => {
+    logger.info("Inside survey otp verification route")
     try {
         const userToken = req.headers["x-authenticated-user-token"]
 
@@ -93,6 +93,7 @@ const surveyOtpVerification = async (req, res) => {
         const mentorMenteeProfileData = await userSearch({
             "id": [mentor_id, mentee_id]
         })
+        logger.info(mentorMenteeProfileData)
         const mentorDetails = mentorMenteeProfileData.data.result.response.content.find(user => user.id === mentor_id);
         const menteeDetails = mentorMenteeProfileData.data.result.response.content.find(user => user.id === mentee_id);
 
@@ -115,6 +116,7 @@ const surveyOtpVerification = async (req, res) => {
             logger.error(error, "Something went wrong while survey otp verification")
             return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
         }
+        logger.info(otpVerified.data)
         if (otpVerified.data.type = "success") {
             const mentoringAndRealtionshipCreationData = {
                 mentoring_relationship_id: uuidV4,
@@ -126,6 +128,7 @@ const surveyOtpVerification = async (req, res) => {
                 observation_id
 
             };
+            logger.info(mentoringAndRealtionshipCreationData, "mentoringAndRealtionshipCreationData")
             const reponseFromRelationshipCreation = await createMentoringRelationshipAndObservation(mentoringAndRealtionshipCreationData)
             if (reponseFromRelationshipCreation.message == "SUCCESS") {
                 res.status(200).json({
