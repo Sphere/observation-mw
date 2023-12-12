@@ -170,6 +170,7 @@ const createMentoringRelationshipAndObservation = async (mentoringAndRealtionshi
             mentoring_relationship_id: mentoringAndRealtionshipCreationData.mentoring_relationship_id,
             observation_id: mentoringAndRealtionshipCreationData.observation_id,
             observation_status: 'your_observation_status',
+            type: "Survey",
             additional_data: { key: 'value', anotherKey: 'anotherValue' },
         };
 
