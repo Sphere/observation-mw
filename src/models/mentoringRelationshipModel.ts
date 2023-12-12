@@ -41,14 +41,14 @@ export const MentoringRelationship = sequelize.define('mentoring_relationship', 
     },
 });
 
-// Synchronize the model with the database (create the table)
-sequelize.sync({ force: true })
-    .then(() => {
-        console.log('MentoringRelationship table created successfully');
-    })
-    .catch((error) => {
-        console.error('Error creating MentoringRelationship table:', error);
-    });
+// // Synchronize the model with the database (create the table)
+// sequelize.sync({ force: true })
+//     .then(() => {
+//         console.log('MentoringRelationship table created successfully');
+//     })
+//     .catch((error) => {
+//         console.error('Error creating MentoringRelationship table:', error);
+//     });
 
 
 // Export the model for use in other parts of your application

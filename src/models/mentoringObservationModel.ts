@@ -27,6 +27,10 @@ export const MentoringObservation = sequelize.define('mentoring_observation', {
             key: 'mentoring_relationship_id',
         },
     },
+    type: {
+        type: DataTypes.STRING(250),
+        allowNull: false,
+    },
     observation_id: {
         type: DataTypes.STRING(250),
         allowNull: false,
@@ -41,16 +45,27 @@ export const MentoringObservation = sequelize.define('mentoring_observation', {
     additional_data: {
         type: DataTypes.JSON,
     }
-});
-MentoringRelationship.hasMany(MentoringObservation);
-// Synchronize the model with the database (create the table)
-sequelize.sync({ force: true })
+},);
+// MentoringRelationship.hasMany(MentoringObservation);
+// // Synchronize the model with the database (create the table)
+// sequelize.sync({ force: true })
+//     .then(() => {
+//         console.log('MentoringObservation table created successfully');
+//     })
+//     .catch((error) => {
+//         console.error('Error creating MentoringObservation table:', error);
+//     });
+MentoringRelationship.sync({ force: true })
+    .then(() => {
+        console.log('MentoringRelationship table created successfully');
+        // Now, sync the MentoringObservation model
+        return MentoringObservation.sync({ force: true });
+    })
     .then(() => {
         console.log('MentoringObservation table created successfully');
     })
     .catch((error) => {
-        console.error('Error creating MentoringObservation table:', error);
+        console.error('Error creating tables:', error);
     });
-
 // Export the model for use in other parts of your application
 module.exports = MentoringObservation;
