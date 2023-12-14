@@ -14,7 +14,7 @@ const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConn
     dialect: 'postgres'
 })
 // Define the MentoringObservation model
-export const MentoringObservation = sequelize.define('mentoring_observation', {
+const MentoringObservation = sequelize.define('mentoring_observations', {
     uuid_id: {
         type: DataTypes.STRING(250),
         primaryKey: true,
@@ -45,16 +45,20 @@ export const MentoringObservation = sequelize.define('mentoring_observation', {
     additional_data: {
         type: DataTypes.JSON,
     }
-},);
-// MentoringRelationship.hasMany(MentoringObservation);
-// // Synchronize the model with the database (create the table)
-// sequelize.sync({ force: true })
-//     .then(() => {
-//         console.log('MentoringObservation table created successfully');
-//     })
-//     .catch((error) => {
-//         console.error('Error creating MentoringObservation table:', error);
-//     });
+});
+// MentoringObservation.hasMany(MentoringRelationship);
+MentoringRelationship.hasMany(MentoringObservation, {
+    foreignKey: 'mentoring_relationship_id', // Specify the foreign key
+    as: 'observations',
+});
+// Synchronize the model with the database (create the table)
+sequelize.sync()
+    .then(() => {
+        console.log('MentoringObservation table created successfully');
+    })
+    .catch((error) => {
+        console.error('Error creating MentoringObservation table:', error);
+    });
 MentoringRelationship.sync()
     .then(() => {
         console.log('MentoringRelationship table created successfully');
@@ -68,4 +72,4 @@ MentoringRelationship.sync()
         console.error('Error creating tables:', error);
     });
 // Export the model for use in other parts of your application
-module.exports = MentoringObservation;
+export { MentoringObservation }

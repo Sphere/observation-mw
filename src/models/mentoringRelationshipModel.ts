@@ -14,7 +14,7 @@ const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConn
 })
 
 // Define the MentoringRelationship model
-export const MentoringRelationship = sequelize.define('mentoring_relationship', {
+export const MentoringRelationship = sequelize.define('mentoring_relationships', {
     mentoring_relationship_id: {
         type: DataTypes.STRING(250),
         primaryKey: true,
@@ -44,7 +44,10 @@ export const MentoringRelationship = sequelize.define('mentoring_relationship', 
         allowNull: false,
     }
 });
-
+// MentoringRelationship.hasMany(MentoringObservation, {
+//     foreignKey: 'mentoring_relationship_id',
+//     as: 'observations',
+// });
 // // Synchronize the model with the database (create the table)
 // sequelize.sync({ force: true })
 //     .then(() => {
@@ -56,3 +59,4 @@ export const MentoringRelationship = sequelize.define('mentoring_relationship', 
 
 
 // Export the model for use in other parts of your application
+module.exports = { MentoringRelationship }
