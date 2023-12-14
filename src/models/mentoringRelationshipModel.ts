@@ -39,6 +39,10 @@ export const MentoringRelationship = sequelize.define('mentoring_relationship', 
         type: DataTypes.STRING(250),
         allowNull: false,
     },
+    mentee_contact_info: {
+        type: DataTypes.STRING(250),
+        allowNull: false,
+    }
 });
 
 // // Synchronize the model with the database (create the table)
