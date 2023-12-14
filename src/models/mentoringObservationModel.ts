@@ -55,11 +55,11 @@ export const MentoringObservation = sequelize.define('mentoring_observation', {
 //     .catch((error) => {
 //         console.error('Error creating MentoringObservation table:', error);
 //     });
-MentoringRelationship.sync({ force: true })
+MentoringRelationship.sync()
     .then(() => {
         console.log('MentoringRelationship table created successfully');
         // Now, sync the MentoringObservation model
-        return MentoringObservation.sync({ force: true });
+        return MentoringObservation.sync();
     })
     .then(() => {
         console.log('MentoringObservation table created successfully');
