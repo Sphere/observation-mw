@@ -1,6 +1,7 @@
 const axios = require("axios")
 import { requestValidator } from "../utils/requestValidator"
 import { logger } from "../utils/logger"
+import { userContactInfo } from "../utils/userSearch"
 
 
 const API_ENDPOINTS = {
@@ -28,9 +29,10 @@ const handleMissingParams = (params, req, res) => {
 
 // Endpoint for sending OTP
 const sendOtp = async (req, res) => {
-    const phone = req.query.phone;
-    console.log(phone)
-    logger.info('Entered into send otp route');
+    const menteeId = req.query.menteeId;
+    const phone = userContactInfo(menteeId)
+
+    logger.info('Entered into send otp route', phone);
     // Check for missing parameters
     if (handleMissingParams(["phone"], req, res)) return;
     try {
