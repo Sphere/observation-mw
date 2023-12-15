@@ -32,7 +32,7 @@ const sendOtp = async (req, res) => {
     const menteeId = req.query.menteeId;
     const phone = userContactInfo(menteeId)
 
-    logger.info('Entered into send otp route', phone);
+    logger.info('Entered into send otp route', menteeId);
     // Check for missing parameters
     if (handleMissingParams(["phone"], req, res)) return;
     try {
