@@ -24,10 +24,12 @@ export let userSearch = async (userAttributes) => {
     });
 }
 export const userContactInfo = async (userId) => {
+    logger.info("entered inside user contact info")
     const query = `SELECT * FROM user WHERE userId ='${userId}' ALLOW FILTERING`;
     const cassandraUserInfo = await client.execute(query)
     const userPhone = cassandraUserInfo.rows[0].phone;
-    logger.info("userphone", userPhone);
+    logger.info(userPhone);
+    logger.info("userPhone")
     const decryptedData = await axios({
         data: {
             values: [userPhone],
@@ -38,6 +40,7 @@ export const userContactInfo = async (userId) => {
         },
         url: descryptionServiceRoute
     });
+    console.log(decryptedData)
     logger.info(decryptedData.data[0])
     return decryptedData.data[0]
 }
