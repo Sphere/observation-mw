@@ -30,11 +30,11 @@ const handleMissingParams = (params, req, res) => {
 // Endpoint for sending OTP
 const sendOtp = async (req, res) => {
     const menteeId = req.query.menteeId;
+    if (handleMissingParams(["menteeId"], req, res)) return;
     const phone = userContactInfo(menteeId)
 
     logger.info('Entered into send otp route', menteeId);
     // Check for missing parameters
-    if (handleMissingParams(["phone"], req, res)) return;
     try {
         const userSearch = await axios({
             data: {
