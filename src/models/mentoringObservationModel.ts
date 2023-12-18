@@ -42,11 +42,11 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
     observation_name: {
         type: DataTypes.STRING(250),
     },
-    competency_name: {
-        type: DataTypes.STRING(250),
-    },
     submission_status: {
         type: DataTypes.STRING(250),
+    },
+    competency_data: {
+        type: DataTypes.ARRAY(DataTypes.JSONB),
     },
     additional_data: {
         type: DataTypes.JSON,
@@ -65,11 +65,11 @@ sequelize.sync()
     .catch((error) => {
         console.error('Error creating MentoringObservation table:', error);
     });
-MentoringRelationship.sync({ force: true })
+MentoringRelationship.sync()
     .then(() => {
         console.log('MentoringRelationship table created successfully');
         // Now, sync the MentoringObservation model
-        return MentoringObservation.sync({ force: true });
+        return MentoringObservation.sync();
     })
     .then(() => {
         console.log('MentoringObservation table created successfully');

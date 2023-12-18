@@ -12,7 +12,7 @@ const getObservationForMentee = async (req, res) => {
         {
           model: MentoringObservation,
           as: 'observations',
-          attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_name', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
+          attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_data', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
           // Add the condition to filter by mentee_id
         },
       ],
@@ -41,7 +41,7 @@ const getAllMenteeForMentor = async (req, res) => {
         {
           model: MentoringObservation,
           as: 'observations',
-          attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_name', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
+          attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_data', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
 
         },
       ],
