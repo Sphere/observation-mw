@@ -84,7 +84,7 @@ export const observationOtpVerification = async (req, res) => {
     const userToken = req.headers["x-authenticated-user-token"]
     try {
         const { otp, mentor_id, mentee_id, observation_id } = req.body;
-        if (handleMissingParams(["otp", "phone", "mentor_id", "mentee_id", "observation_id"], req.body, res)) return;
+        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "observation_id"], req.body, res)) return;
         let otpVerified;
         try {
             otpVerified = await axios({
@@ -107,24 +107,36 @@ export const observationOtpVerification = async (req, res) => {
         }
         logger.info(otpVerified.data)
         if (otpVerified.data.type = "success") {
-            const mentoringRelationshipId = await MentoringRelationship.findAll({
-                attributes: ['mentoring_relationship_id'],
-                where: { mentor_id: mentor_id },
-            });
-            const updatedValues = {
-                observation_status: 'verified',
-                // Add other fields you want to update
-            };
-            const [updatedRowsCount, updatedRows] = await MentoringObservation.update(updatedValues, {
+            await MentoringObservation.findOne({
                 where: {
-                    mentoring_relationship_id: mentoringRelationshipId,
+                    '$mentoring_relationship.mentor_id$': mentor_id,
+                    '$mentoring_relationship.mentee_id$': mentee_id,
                     observation_id: observation_id,
                 },
-                returning: true, // To get the updated rows in the result
-            });
-            logger.info(updatedRowsCount);
-            logger.info(updatedRows);
-
+                include: [
+                    {
+                        model: MentoringRelationship,
+                        attributes: [],
+                        as: 'mentoring_relationship',
+                    },
+                ],
+            })
+                .then((observationInstance) => {
+                    if (observationInstance) {
+                        // Update the observation instance
+                        return observationInstance.update({ observation_status: 'verified' });
+                    } else {
+                        return res.status(400).json({
+                            "message": "Observation not found"
+                        }) // Handle the case where the observation is not found
+                    }
+                })
+                .then(() => {
+                    console.log('Update successful');
+                })
+                .catch((error) => {
+                    console.error('Error updating records:', error);
+                });
             res.status(200).json({
                 "message": "Mentee successfully verified",
                 "status": "SUCCESS"
