@@ -113,10 +113,10 @@ export const observationOtpVerification = async (req, res) => {
                 foreignKey: 'mentoring_relationship_id',
                 as: 'observation_mentoring_relationship',
             });
-            await MentoringObservation.findOne({
+            const observationInstance = await MentoringObservation.findOne({
                 where: {
-                    '$mentoring_relationship.mentor_id$': mentor_id,
-                    '$mentoring_relationship.mentee_id$': mentee_id,
+                    '$observation_mentoring_relationship.mentor_id$': mentor_id,
+                    '$observation_mentoring_relationship.mentee_id$': mentee_id,
                     observation_id: observation_id,
                 },
                 include: [
@@ -126,26 +126,19 @@ export const observationOtpVerification = async (req, res) => {
                         as: 'observation_mentoring_relationship',
                     },
                 ],
-            })
-                .then((observationInstance) => {
-                    if (observationInstance) {
-                        // Update the observation instance
-                        return observationInstance.update({ observation_status: 'verified' });
-                    } else {
-                        return res.status(400).json({
-                            "message": "Observation not found"
-                        }) // Handle the case where the observation is not found
-                    }
-                })
-                .then(() => {
-                    console.log('Update successful');
-                })
-                .catch((error) => {
-                    console.error('Error updating records:', error);
-                    return res.status(400).json({
-                        "message": "Error updating records"
-                    }) //
+            });
+            if (observationInstance) {
+                // Update the observation instance
+                await observationInstance.update({ observation_status: 'verified' });
+                console.log('Update successful');
+                return res.status(200).json({
+                    message: 'Update successful',
                 });
+            } else {
+                return res.status(400).json({
+                    message: 'Observation not found',
+                });
+            }
 
         }
         else if (otpVerified.data.type == "error") {
