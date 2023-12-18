@@ -38,6 +38,9 @@ const getAllMenteeForMentor = async (req, res) => {
   const { mentorId } = req.query;
 
   try {
+    MentoringRelationship.belongsTo(MentoringObservation, {
+      foreignKey: 'mentoring_relationship_id',
+    });
     const result = await MentoringRelationship.findAll({
       attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
       include: [
