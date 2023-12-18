@@ -65,11 +65,11 @@ sequelize.sync()
     .catch((error) => {
         console.error('Error creating MentoringObservation table:', error);
     });
-MentoringRelationship.sync()
+MentoringRelationship.sync({ force: true })
     .then(() => {
         console.log('MentoringRelationship table created successfully');
         // Now, sync the MentoringObservation model
-        return MentoringObservation.sync();
+        return MentoringObservation.sync({ force: true });
     })
     .then(() => {
         console.log('MentoringObservation table created successfully');
