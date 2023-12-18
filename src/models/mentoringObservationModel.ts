@@ -39,6 +39,12 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
         type: DataTypes.STRING(250),
         allowNull: false,
     },
+    observation_name: {
+        type: DataTypes.STRING(250),
+    },
+    competency_name: {
+        type: DataTypes.STRING(250),
+    },
     submission_status: {
         type: DataTypes.STRING(250),
     },

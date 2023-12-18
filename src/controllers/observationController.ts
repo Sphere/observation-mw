@@ -1,9 +1,7 @@
 import axios from "axios";
 import { logger } from "../utils/logger";
 import { requestValidator } from "../utils/requestValidator"
-const uuid = require('uuid');
-import { uuid } from "uuid"
-import { sequelize } from "../utils/postgres-sequelize"
+
 import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
 
@@ -26,7 +24,7 @@ const handleMissingParams = (params, body, res) => {
     return false;
 };
 //End-points for verifying survey link
-const verifySurveyLink = async (req, res) => {
+const verifyobservationLink = async (req, res) => {
     try {
         logger.info("Inside verify survey link route");
 
@@ -54,7 +52,7 @@ const verifySurveyLink = async (req, res) => {
 };
 
 //Endpoints for getting survey details
-const getSurveyDetails = async (req, res) => {
+const getobservationDetails = async (req, res) => {
     try {
         logger.info("Inside survey details route");
         const solutionId = req.query.solutionId
@@ -81,7 +79,7 @@ const getSurveyDetails = async (req, res) => {
     }
 
 };
-const observationOtpVerificaion = async (req, res) => {
+export const observationOtpVerification = async (req, res) => {
     logger.info("Inside observation verification OTP route");
     const userToken = req.headers["x-authenticated-user-token"]
     try {
@@ -124,6 +122,9 @@ const observationOtpVerificaion = async (req, res) => {
                 },
                 returning: true, // To get the updated rows in the result
             });
+            logger.info(updatedRowsCount);
+            logger.info(updatedRows);
+
             res.status(200).json({
                 "message": "Mentee successfully verified",
                 "status": "SUCCESS"
@@ -245,6 +246,6 @@ const observationOtpVerificaion = async (req, res) => {
 // }
 
 
-module.exports = { getSurveyDetails, verifySurveyLink, observationOtpVerificaion }
+module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification }
 
 
