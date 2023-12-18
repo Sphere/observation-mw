@@ -13,6 +13,8 @@ const API_ENDPOINTS = {
 }
 const msg91AuthKey = process.env.MSG_91_AUTH_KEY
 const msg91TemplateId = process.env.MSG_91_TEMPLATE_ID
+const countryCode = "+91";
+
 
 // Function to handle missing parameters and return an appropriate response
 const handleMissingParams = (params, req, res) => {
@@ -31,7 +33,6 @@ const handleMissingParams = (params, req, res) => {
 const sendOtp = async (req, res) => {
     const menteeId = req.query.menteeId;
     if (handleMissingParams(["menteeId"], req, res)) return;
-    const countryCode = "+91";
     let phone = await userContactInfo(menteeId)
     phone = countryCode + phone;
     logger.info(phone)
@@ -78,9 +79,12 @@ const sendOtp = async (req, res) => {
 // Endpoint for verifying OTP
 const verifyOtp = async (req, res) => {
     const otp = req.query.otp;
-    const phone = req.query.phone;
+    const menteeId = req.query.menteeId;
+    if (handleMissingParams(["otp", "menteeId"], req, res)) return;
+    let phone = await userContactInfo(menteeId);
+    phone = countryCode + phone;
     // Check for missing parameters
-    if (handleMissingParams(["otp", "phone"], req, res)) return;
+
     try {
         // Verify OTP using Msg91 API
         logger.info("Inside verify OTP route");

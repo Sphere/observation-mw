@@ -6,7 +6,7 @@ const getObservationForMentee = async (req, res) => {
 
   try {
     const result = await MentoringRelationship.findAll({
-      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name'],
+      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
       include: [
         {
           model: MentoringObservation,
@@ -35,7 +35,7 @@ const getAllMenteeForMentor = async (req, res) => {
 
   try {
     const result = await MentoringRelationship.findAll({
-      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name'],
+      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
       include: [
         {
           model: MentoringObservation,
