@@ -1,17 +1,20 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 
+
 const getObservationForMentee = async (req, res) => {
   const { menteeId } = req.query;
 
   try {
 
+    MentoringRelationship.belongsTo(MentoringObservation, {
+      foreignKey: 'mentoring_relationship_id',
+    });
     const result = await MentoringRelationship.findAll({
       attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
       include: [
         {
           model: MentoringObservation,
-          as: 'observations',
           attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_data', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
           // Add the condition to filter by mentee_id
         },
@@ -40,7 +43,7 @@ const getAllMenteeForMentor = async (req, res) => {
       include: [
         {
           model: MentoringObservation,
-          as: 'observations',
+
           attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_data', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
 
         },
