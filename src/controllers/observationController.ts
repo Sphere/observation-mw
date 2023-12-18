@@ -1,7 +1,6 @@
 import axios from "axios";
 import { logger } from "../utils/logger";
 import { requestValidator } from "../utils/requestValidator"
-
 import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
 
@@ -84,7 +83,6 @@ export const observationOtpVerification = async (req, res) => {
     const userToken = req.headers["x-authenticated-user-token"]
     try {
         const { otp, mentor_id, mentee_id, observation_id } = req.body;
-        console.log(req.body.otp)
         if (handleMissingParams(["otp", "mentor_id", "mentee_id", "observation_id"], req, res)) return;
         let otpVerified;
         try {
@@ -106,24 +104,22 @@ export const observationOtpVerification = async (req, res) => {
             logger.error(error, "Something went wrong while survey otp verification")
             return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
         }
-        console.log(otpVerified.data.type)
-        logger.info(otpVerified.data)
+
         if (otpVerified.data.type == "success") {
             MentoringObservation.belongsTo(MentoringRelationship, {
                 foreignKey: 'mentoring_relationship_id',
-                as: 'observation_mentoring_relationship',
             });
             const observationInstance = await MentoringObservation.findOne({
                 where: {
-                    '$observation_mentoring_relationship.mentor_id$': mentor_id,
-                    '$observation_mentoring_relationship.mentee_id$': mentee_id,
+                    '$mentoring_relationship.mentor_id$': mentor_id,
+                    '$mentoring_relationship.mentee_id$': mentee_id,
                     observation_id: observation_id,
                 },
                 include: [
                     {
                         model: MentoringRelationship,
+                        as: 'mentoring_relationship',
                         attributes: [],
-                        as: 'observation_mentoring_relationship',
                     },
                 ],
             });
@@ -146,6 +142,7 @@ export const observationOtpVerification = async (req, res) => {
                 "message": "Mentee already verified"
             })
         }
+
 
     } catch (error) {
         console.log(error)

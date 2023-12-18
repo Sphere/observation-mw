@@ -1,6 +1,7 @@
 import { Sequelize, DataTypes } from 'sequelize';
 
 import { MentoringRelationship } from "./mentoringRelationshipModel"
+
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
     host: process.env.POSTGRES_HOST,
@@ -52,19 +53,20 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
         type: DataTypes.JSON,
     }
 });
-// MentoringObservation.hasMany(MentoringRelationship);
-MentoringRelationship.hasMany(MentoringObservation, {
-    foreignKey: 'mentoring_relationship_id', // Specify the foreign key
-    as: 'observations',
+
+MentoringObservation.hasOne(MentoringRelationship, {
+    foreignKey: 'mentoring_relationship_id',
+    as: 'relationship', // Use a unique alias
 });
+
 // Synchronize the model with the database (create the table)
-sequelize.sync()
-    .then(() => {
-        console.log('MentoringObservation table created successfully');
-    })
-    .catch((error) => {
-        console.error('Error creating MentoringObservation table:', error);
-    });
+// sequelize.sync()
+//     .then(() => {
+//         console.log('MentoringObservation table created successfully');
+//     })
+//     .catch((error) => {
+//         console.error('Error creating MentoringObservation table:', error);
+//     });
 MentoringRelationship.sync()
     .then(() => {
         console.log('MentoringRelationship table created successfully');

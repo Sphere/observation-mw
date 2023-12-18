@@ -44,10 +44,8 @@ export const MentoringRelationship = sequelize.define('mentoring_relationships',
         allowNull: false,
     }
 });
-// MentoringRelationship.hasMany(MentoringObservation, {
-//     foreignKey: 'mentoring_relationship_id',
-//     as: 'observations',
-// });
+
+
 // // Synchronize the model with the database (create the table)
 // sequelize.sync({ force: true })
 //     .then(() => {
