@@ -12,8 +12,8 @@ const API_ENDPOINTS = {
 }
 
 // Function to handle missing parameters and return an appropriate response
-const handleMissingParams = (params, body, res) => {
-    const missingParams = requestValidator(params, body);
+const handleMissingParams = (params, req, res) => {
+    const missingParams = requestValidator(params, req.body);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
         return res.status(400).json({
@@ -84,7 +84,8 @@ export const observationOtpVerification = async (req, res) => {
     const userToken = req.headers["x-authenticated-user-token"]
     try {
         const { otp, mentor_id, mentee_id, observation_id } = req.body;
-        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "observation_id"], req.body, res)) return;
+        console.log(req.body.otp)
+        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "observation_id"], req, res)) return;
         let otpVerified;
         try {
             otpVerified = await axios({
