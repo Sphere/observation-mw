@@ -74,7 +74,7 @@ const addEntityToObservation = async (req, res) => {
             "roles": "MENTOR,MENTEE"
         },
         method: 'POST',
-        url: `${API_ENDPOINTS.getObservationDetails}`,
+        url: `${API_ENDPOINTS.addEntityToObservation}`,
     })
     res.status(200).json(addEntityDetails.data)
 }
