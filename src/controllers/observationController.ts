@@ -7,7 +7,8 @@ import { MentoringObservation } from "../models/mentoringObservationModel"
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
     "verifyObservationLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
-    "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`
+    "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
+    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`
 }
 
 // Function to handle missing parameters and return an appropriate response
@@ -54,7 +55,29 @@ const verifyobservationLink = async (req, res) => {
     }
 
 };
-
+const addEntityToObservation = async (req, res) => {
+    const solutionId = req.query.solutionId;
+    const mentee_id = req.query.mentee_id;
+    const userToken = req.headers["x-authenticated-user-token"]
+    const addEntityDetails = await axios({
+        params: {
+            solutionId
+        },
+        headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            "Authorization": process.env.SB_API_KEY,
+            "X-authenticated-user-token": userToken
+        },
+        data: {
+            "users": mentee_id,
+            "roles": "MENTOR,MENTEE"
+        },
+        method: 'POST',
+        url: `${API_ENDPOINTS.getObservationDetails}`,
+    })
+    res.status(200).json(addEntityDetails.data)
+}
 //Endpoints for getting observation details
 const getobservationDetails = async (req, res) => {
     try {
@@ -73,6 +96,10 @@ const getobservationDetails = async (req, res) => {
                 "content-type": "application/json",
                 "Authorization": process.env.SB_API_KEY,
                 "X-authenticated-user-token": userToken
+            },
+            data: {
+                "users": mentee_id,
+                "roles": "MENTOR,MENTEE"
             },
             method: 'POST',
             url: `${API_ENDPOINTS.getObservationDetails}/${solutionId}`,
@@ -159,116 +186,8 @@ export const observationOtpVerification = async (req, res) => {
 
 }
 
-// const sampleDataInsertion = async (req, res) => {
-//     logger.info("Inside observation otp verification route")
-//     try {
-//         const userToken = req.headers["x-authenticated-user-token"]
-//         const uuidV4 = uuid.v4();
-//         const { otp, mentor_id, mentee_id, observation_id, phone } = req.body;
-//         if (handleMissingParams(["otp", "phone", "mentor_id", "mentee_id", "observation_id"], req, res)) return;
-//         const mentorMenteeProfileData = await userSearch({
-//             "id": [mentor_id, mentee_id]
-//         })
-//         logger.info(mentorMenteeProfileData)
-//         const mentorDetails = mentorMenteeProfileData.data.result.response.content.find(user => user.id === mentor_id);
-//         const menteeDetails = mentorMenteeProfileData.data.result.response.content.find(user => user.id === mentee_id);
-
-//         let otpVerified;
-//         try {
-//             otpVerified = await axios({
-//                 params: {
-//                     otp, phone
-//                 },
-//                 headers: {
-//                     accept: "application/json",
-//                     "content-type": "application/json",
-//                     "Authorization": process.env.SB_API_KEY,
-//                     "X-authenticated-user-token": userToken
-//                 },
-//                 method: 'GET',
-//                 url: `${API_ENDPOINTS.verifyOtp}`,
-//             })
-//         } catch (error) {
-//             logger.error(error, "Something went wrong while survey otp verification")
-//             return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
-//         }
-//         logger.info(otpVerified.data)
-//         if (otpVerified.data.type = "success") {
-//             const mentoringAndRealtionshipCreationData = {
-//                 mentoring_relationship_id: uuidV4,
-//                 mentor_id,
-//                 mentee_id,
-//                 mentor_name: mentorDetails.firstName + mentorDetails.lastName,
-//                 mentee_name: menteeDetails.firstName + menteeDetails.lastName,
-//                 mentee_designation: menteeDetails.profileDetails.profileReq.professionalDetails.designation || "Dummy designation",
-//                 observation_id
-
-//             };
-//             logger.info(mentoringAndRealtionshipCreationData, "mentoringAndRealtionshipCreationData")
-//             const reponseFromRelationshipCreation = await createMentoringRelationshipAndObservation(mentoringAndRealtionshipCreationData)
-//             if (reponseFromRelationshipCreation.message == "SUCCESS") {
-//                 res.status(200).json({
-//                     "message": "Relationship updated successfully"
-//                 })
-//             }
-//             else {
-//                 res.status(400).json({
-//                     "message": "Failed during relationship creation"
-//                 })
-//             }
-
-//         }
-//     } catch (error) {
-//         logger.error(error, "Something went wrong while survey otp verification")
-//         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
-//     }
-
-// }
-// const createMentoringRelationshipAndObservation = async (mentoringAndRealtionshipCreationData) => {
-//     let transaction;
-
-//     try {
-//         // Start a transaction
-//         transaction = await sequelize.transaction();
-//         const mentoringRelationshipData = {
-//             mentoring_relationship_id: mentoringAndRealtionshipCreationData.mentoring_relationship_id,
-//             mentor_id: mentoringAndRealtionshipCreationData.mentor_id,
-//             mentee_id: mentoringAndRealtionshipCreationData.mentee_id,
-//             mentor_name: mentoringAndRealtionshipCreationData.mentor_name,
-//             mentee_name: mentoringAndRealtionshipCreationData.mentee_name,
-//             mentee_designation: mentoringAndRealtionshipCreationData.mentee_designation
-//         };
-//         // Create a MentoringRelationship record
-//         await MentoringRelationship.create(mentoringRelationshipData, { transaction });
-
-//         // Sample data for MentoringObservation
-//         const mentoringObservationData = {
-//             mentoring_relationship_id: mentoringAndRealtionshipCreationData.mentoring_relationship_id,
-//             observation_id: mentoringAndRealtionshipCreationData.observation_id,
-//             observation_status: 'your_observation_status',
-//             type: "Survey",
-//             additional_data: { key: 'value', anotherKey: 'anotherValue' },
-//         };
-
-//         // Create a MentoringObservation record
-//         await MentoringObservation.create(mentoringObservationData, { transaction });
-
-//         // Commit the transaction
-//         await transaction.commit();
-
-//         console.log('Records created successfully.');
-//         return { "message": "SUCCESS" }
-//     } catch (error) {
-//         // If there is an error, rollback the transaction
-//         if (transaction) await transaction.rollback();
-
-//         console.error('Error creating records:', error);
-//         return { "message": "FAILED" }
-
-//     };
-// }
 
 
-module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification }
+module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation }
 
 

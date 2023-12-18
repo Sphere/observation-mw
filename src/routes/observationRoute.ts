@@ -13,3 +13,7 @@ observationRoute.post(
     "/observationOtpVerification",
     observationController.observationOtpVerification
 );
+observationRoute.post(
+    "/addEntityToObservation",
+    observationController.addEntityToObservation
+);
