@@ -1,7 +1,7 @@
 const observationController = require("./../controllers/observationController");
 import { Router } from 'express'
 export const observationRoute = Router();
-observationRoute.get(
+observationRoute.post(
     "/getobservationDetails",
     observationController.getobservationDetails
 );

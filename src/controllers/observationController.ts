@@ -89,7 +89,7 @@ const getobservationDetails = async (req, res) => {
         const observationDetails = await axios({
             params: {
                 "entityId": mentee_id,
-                "submissionNumber": ""
+                "submissionNumber": 1
             },
             headers: {
                 accept: "application/json",
