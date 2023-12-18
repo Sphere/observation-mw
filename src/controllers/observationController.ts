@@ -5,8 +5,8 @@ import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
 
 const API_ENDPOINTS = {
-    "getSurveyDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/surveys/details`,
-    "verifySurveyLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
+    "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
+    "verifyObservationLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`
 }
 
@@ -22,14 +22,19 @@ const handleMissingParams = (params, req, res) => {
     }
     return false;
 };
-//End-points for verifying survey link
+//End-points for verifying observation link
 const verifyobservationLink = async (req, res) => {
     try {
-        logger.info("Inside verify survey link route");
-
-        const surveyLink = req.query.surveyLink
+        logger.info("Inside verify observation link route");
+        const observationLink = req.query.observationLink
+        if (!observationLink) {
+            res.status(400).json({
+                "type": "Failed",
+                "error": `Missing parameters: Observation link}`
+            })
+        }
         const userToken = req.headers["x-authenticated-user-token"]
-        const surveyDetails = await axios({
+        const observationDetails = await axios({
             params: {
                 "createProject": "false"
             },
@@ -40,27 +45,28 @@ const verifyobservationLink = async (req, res) => {
                 "X-authenticated-user-token": userToken
             },
             method: 'POST',
-            url: `${API_ENDPOINTS.verifySurveyLink}/${surveyLink}`,
+            url: `${API_ENDPOINTS.verifyObservationLink}/${observationLink}`,
         })
-        res.status(200).json(surveyDetails.data)
+        res.status(200).json(observationDetails.data)
     } catch (error) {
-        logger.error(error, "Something went wrong while verifying survey")
+        logger.error(error, "Something went wrong while verifying observation link")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
     }
 
 };
 
-//Endpoints for getting survey details
+//Endpoints for getting observation details
 const getobservationDetails = async (req, res) => {
     try {
-        logger.info("Inside survey details route");
+        logger.info("Inside observation details route");
         const solutionId = req.query.solutionId
+        const mentee_id = req.query.mentee_id;
         logger.info("SolutionID", solutionId)
         const userToken = req.headers["x-authenticated-user-token"]
-        const surveyDetails = await axios({
+        const observationDetails = await axios({
             params: {
-                solutionId,
-                "retrytype": "text"
+                "entityId": mentee_id,
+                "submissionNumber": ""
             },
             headers: {
                 accept: "application/json",
@@ -69,9 +75,9 @@ const getobservationDetails = async (req, res) => {
                 "X-authenticated-user-token": userToken
             },
             method: 'POST',
-            url: API_ENDPOINTS.getSurveyDetails || "http://localhost:3000",
+            url: `${API_ENDPOINTS.getObservationDetails}/${solutionId}`,
         })
-        res.status(200).json(surveyDetails.data)
+        res.status(200).json(observationDetails.data)
     } catch (error) {
         logger.error(error, "Something went wrong while fetching survey details")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
