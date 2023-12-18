@@ -7,7 +7,7 @@ const getObservationForMentee = async (req, res) => {
 
   try {
 
-    MentoringRelationship.belongsTo(MentoringObservation, {
+    MentoringRelationship.hasMany(MentoringObservation, {
       foreignKey: 'mentoring_relationship_id',
     });
     const result = await MentoringRelationship.findAll({
@@ -38,7 +38,7 @@ const getAllMenteeForMentor = async (req, res) => {
   const { mentorId } = req.query;
 
   try {
-    MentoringRelationship.belongsTo(MentoringObservation, {
+    MentoringRelationship.hasMany(MentoringObservation, {
       foreignKey: 'mentoring_relationship_id',
     });
     const result = await MentoringRelationship.findAll({
