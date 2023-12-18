@@ -123,7 +123,7 @@ export const observationOtpVerification = async (req, res) => {
                     {
                         model: MentoringRelationship,
                         attributes: [],
-                        as: 'mentoring_relationship',
+                        as: 'observation_mentoring_relationship',
                     },
                 ],
             })
@@ -150,14 +150,14 @@ export const observationOtpVerification = async (req, res) => {
         }
         else if (otpVerified.data.type == "error") {
             res.status(400).json({
-                "message": "Mentee already verifed"
+                "message": "Mentee already verified"
             })
         }
 
     } catch (error) {
         console.log(error)
         res.status(400).json({
-            "message": "Error occurred while obseration verification"
+            "message": "Error occurred while observation verification"
         })
     }
 
