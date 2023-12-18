@@ -106,8 +106,9 @@ export const observationOtpVerification = async (req, res) => {
             logger.error(error, "Something went wrong while survey otp verification")
             return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
         }
+        console.log(otpVerified.data.type)
         logger.info(otpVerified.data)
-        if (otpVerified.data.type = "success") {
+        if (otpVerified.data.type == "success") {
             MentoringObservation.belongsTo(MentoringRelationship, {
                 foreignKey: 'mentoring_relationship_id',
                 as: 'mentoring_relationship',
@@ -141,14 +142,23 @@ export const observationOtpVerification = async (req, res) => {
                 })
                 .catch((error) => {
                     console.error('Error updating records:', error);
+                    return res.status(400).json({
+                        "message": "Error updating records"
+                    }) //
                 });
-            res.status(200).json({
-                "message": "Mentee successfully verified",
-                "status": "SUCCESS"
+
+        }
+        else if (otpVerified.data.type == "error") {
+            res.status(400).json({
+                "message": "Mentee already verifed"
             })
         }
-    } catch (error) {
 
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            "message": "Error occurred while obseration verification"
+        })
     }
 
 }
