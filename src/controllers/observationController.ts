@@ -111,7 +111,7 @@ export const observationOtpVerification = async (req, res) => {
         if (otpVerified.data.type == "success") {
             MentoringObservation.belongsTo(MentoringRelationship, {
                 foreignKey: 'mentoring_relationship_id',
-                as: 'mentoring_relationship',
+                as: 'observation_mentoring_relationship',
             });
             await MentoringObservation.findOne({
                 where: {
