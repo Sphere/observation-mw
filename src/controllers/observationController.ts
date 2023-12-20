@@ -85,7 +85,7 @@ const getobservationDetails = async (req, res) => {
         const userToken = req.headers["x-authenticated-user-token"]
         const observationDetails = await axios({
             params: {
-                "entityId": mentor_id,
+                "entityId": mentee_id,
                 "submissionNumber": submision_number
             },
             headers: {
@@ -95,7 +95,7 @@ const getobservationDetails = async (req, res) => {
                 "X-authenticated-user-token": userToken
             },
             data: {
-                "users": mentee_id,
+                "users": mentor_id,
                 "roles": "MENTOR,MENTEE"
             },
             method: 'POST',
