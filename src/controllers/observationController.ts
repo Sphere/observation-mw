@@ -25,6 +25,85 @@ const handleMissingParams = (params, req, res) => {
     }
     return false;
 };
+const getEntitiesForMentor = async (req) => {
+    const solution_id = req.body.solution_id;
+    const entityData = await axios({
+        params: {
+            solutionId: solution_id
+        },
+        headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            "Authorization": process.env.SB_API_KEY,
+            "X-authenticated-user-token": req.headers["x-authenticated-user-token"]
+        },
+        method: 'GET',
+        url: `${API_ENDPOINTS.getEntity}`,
+    })
+    return entityData;
+}
+const submitObservation = async (req, res) => {
+    try {
+        // const { mentor_id, mentee_id, solution_id, observation_id } = req.body;
+        const { observation_id } = req.body;
+
+        const userToken = req.headers["x-authenticated-user-token"]
+        const submission_data = req.body;
+        const submitObservationDetails = await axios({
+            headers: {
+                accept: "application/json",
+                "content-type": "application/json",
+                "Authorization": process.env.SB_API_KEY,
+                "X-authenticated-user-token": userToken
+            },
+            method: 'POST',
+            data: submission_data,
+            url: `${API_ENDPOINTS.submitObservation}/${observation_id}`
+        })
+        res.status(200).json({
+            "message": "SUCCESS",
+            "data": submitObservationDetails
+        })
+        // MentoringObservation.belongsTo(MentoringRelationship, {
+        //     foreignKey: 'mentoring_relationship_id',
+        // });
+        // const observationInstance = await MentoringObservation.findOne({
+        //     where: {
+        //         '$mentoring_relationship.mentor_id$': mentor_id,
+        //         '$mentoring_relationship.mentee_id$': mentee_id,
+        //         solution_id: solution_id,
+        //     },
+        //     include: [
+        //         {
+        //             model: MentoringRelationship,
+        //             as: 'mentoring_relationship',
+        //             attributes: [],
+        //         },
+        //     ],
+        // });
+        // if (observationInstance) {
+        //     // Update the observation instance
+        //     await observationInstance.update({
+        //         submission_status: 'submitted',
+        //     });
+        //     console.log('Update successful');
+        //     res.status(200).json({
+        //         "message": "SUCCESS",
+        //         "data": submitObservationDetails
+        //     })
+        // } else {
+        //     return res.status(400).json({
+        //         message: 'Observation not found',
+        //     });
+        // }
+
+    } catch (error) {
+        logger.error(error, "Something went wrong while verifying observation link")
+        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+    }
+
+}
+
 
 //End-points for verifying observation link
 const verifyobservationLink = async (req, res) => {
@@ -108,23 +187,7 @@ const getobservationDetails = async (req, res) => {
     }
 
 };
-const getEntitiesForMentor = async (req) => {
-    const solution_id = req.body.solution_id;
-    const entityData = await axios({
-        params: {
-            solutionId: solution_id
-        },
-        headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "Authorization": process.env.SB_API_KEY,
-            "X-authenticated-user-token": req.headers["x-authenticated-user-token"]
-        },
-        method: 'GET',
-        url: `${API_ENDPOINTS.getEntity}`,
-    })
-    return entityData;
-}
+
 export const observationOtpVerification = async (req, res) => {
     logger.info("Inside observation verification OTP route");
     const userToken = req.headers["x-authenticated-user-token"]
@@ -205,6 +268,6 @@ export const observationOtpVerification = async (req, res) => {
 
 
 
-module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation }
+module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation }
 
 

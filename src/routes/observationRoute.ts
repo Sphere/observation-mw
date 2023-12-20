@@ -17,3 +17,7 @@ observationRoute.post(
     "/addEntityToObservation",
     observationController.addEntityToObservation
 );
+observationRoute.post(
+    "/submitObservation",
+    observationController.submitObservation
+);
