@@ -1,5 +1,6 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
+import { ObservationData } from "../models/observationMetaModel";
 
 
 const getObservationForMentee = async (req, res) => {
@@ -10,16 +11,26 @@ const getObservationForMentee = async (req, res) => {
     MentoringRelationship.hasMany(MentoringObservation, {
       foreignKey: 'mentoring_relationship_id',
     });
+    MentoringObservation.hasMany(ObservationData, {
+      foreignKey: 'solution_id',
+    });
     const result = await MentoringRelationship.findAll({
-      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
+      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
       include: [
         {
           model: MentoringObservation,
-          attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_data', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status'],
+          include: [{
+            model: ObservationData,
+            as: 'observationData',
+            attributes: ['solution_id', 'solution_name', 'competency_data']
+          }]
           // Add the condition to filter by mentee_id
         },
+
       ],
-      where: { mentee_id: menteeId }
+      where: { mentee_id: menteeId },
+      subQuery: false,
     });
 
     res.status(200).json({
@@ -42,16 +53,21 @@ const getAllMenteeForMentor = async (req, res) => {
       foreignKey: 'mentoring_relationship_id',
     });
     const result = await MentoringRelationship.findAll({
-      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
+      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
       include: [
         {
           model: MentoringObservation,
-
-          attributes: ['uuid_id', 'type', 'observation_id', 'observation_name', 'competency_data', 'observation_status', 'submission_status', 'additional_data', 'createdAt', 'updatedAt'],
-
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status'],
+          include: [{
+            model: ObservationData,
+            as: 'observationData',
+            attributes: ['solution_id', 'solution_name', 'competency_data']
+          }]
+          // Add the condition to filter by mentee_id
         },
+
       ],
-      where: { mentor_id: mentorId },
+      where: { mentor_id: mentorId }, subQuery: false,
     });
 
     res.status(200).json({

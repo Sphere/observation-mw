@@ -1,6 +1,8 @@
 import { Sequelize, DataTypes } from 'sequelize';
 
 import { MentoringRelationship } from "./mentoringRelationshipModel"
+import { ObservationData } from './observationMetaModel';
+// import { ObservationData } from './observationMetaModel';
 
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
@@ -36,28 +38,32 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
         type: DataTypes.STRING(250),
         allowNull: false,
     },
-    observation_status: {
+    otp_verification_status: {
         type: DataTypes.STRING(250),
         allowNull: false,
     },
-    observation_name: {
+    solution_id: {
         type: DataTypes.STRING(250),
     },
     submission_status: {
         type: DataTypes.STRING(250),
-    },
-    competency_data: {
-        type: DataTypes.ARRAY(DataTypes.JSONB),
-    },
-    additional_data: {
-        type: DataTypes.JSON,
     }
 });
 
-MentoringObservation.hasOne(MentoringRelationship, {
+MentoringObservation.belongsTo(MentoringRelationship, {
     foreignKey: 'mentoring_relationship_id',
     as: 'relationship', // Use a unique alias
 });
+
+MentoringObservation.hasOne(ObservationData, {
+    foreignKey: 'solution_id',
+    sourceKey: 'solution_id',
+    as: 'observationData',
+});
+// ObservationData.belongsTo(MentoringObservation, {
+//     foreignKey: 'solution_id',
+//     as: 'observationData',
+// });
 
 // Synchronize the model with the database (create the table)
 // sequelize.sync()
@@ -67,14 +73,11 @@ MentoringObservation.hasOne(MentoringRelationship, {
 //     .catch((error) => {
 //         console.error('Error creating MentoringObservation table:', error);
 //     });
-MentoringRelationship.sync()
+// Synchronize the models with the database (create the tables)
+sequelize
+    .sync()
     .then(() => {
-        console.log('MentoringRelationship table created successfully');
-        // Now, sync the MentoringObservation model
-        return MentoringObservation.sync();
-    })
-    .then(() => {
-        console.log('MentoringObservation table created successfully');
+        console.log('Tables created successfully');
     })
     .catch((error) => {
         console.error('Error creating tables:', error);

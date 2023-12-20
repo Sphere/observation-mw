@@ -15,6 +15,7 @@ const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConn
 
 // Define the MentoringRelationship model
 export const MentoringRelationship = sequelize.define('mentoring_relationships', {
+
     mentoring_relationship_id: {
         type: DataTypes.STRING(250),
         primaryKey: true,

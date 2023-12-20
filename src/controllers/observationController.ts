@@ -8,7 +8,8 @@ const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
     "verifyObservationLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
-    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`
+    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
+    "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`
 }
 
 // Function to handle missing parameters and return an appropriate response
@@ -23,6 +24,7 @@ const handleMissingParams = (params, req, res) => {
     }
     return false;
 };
+
 //End-points for verifying observation link
 const verifyobservationLink = async (req, res) => {
     try {
