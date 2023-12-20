@@ -10,7 +10,7 @@ const API_ENDPOINTS = {
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
     "getEntity": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
     "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observationSubmissions/update`,
-    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`
+    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`
 }
 
 // Function to handle missing parameters and return an appropriate response
