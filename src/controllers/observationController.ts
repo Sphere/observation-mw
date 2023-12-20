@@ -81,7 +81,7 @@ const addEntityToObservation = async (req, res) => {
 const getobservationDetails = async (req, res) => {
     try {
         logger.info("Inside observation details route");
-        const { solution_id, mentee_id, mentor_id, submision_number } = req.query
+        const { observation_id, mentee_id, mentor_id, submision_number } = req.query
         const userToken = req.headers["x-authenticated-user-token"]
         const observationDetails = await axios({
             params: {
@@ -99,7 +99,7 @@ const getobservationDetails = async (req, res) => {
                 "roles": "MENTOR,MENTEE"
             },
             method: 'POST',
-            url: `${API_ENDPOINTS.getObservationDetails}/${solution_id}`,
+            url: `${API_ENDPOINTS.getObservationDetails}/${observation_id}`,
         })
         res.status(200).json(observationDetails.data)
     } catch (error) {
