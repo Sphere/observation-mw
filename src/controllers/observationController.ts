@@ -45,7 +45,7 @@ const getEntitiesForMentor = async (req) => {
 const submitObservation = async (req, res) => {
     try {
         // const { mentor_id, mentee_id, solution_id, observation_id } = req.body;
-        const observation_id = req.query.observation_id;
+        const submission_id = req.query.observation_id;
         const userToken = req.headers["x-authenticated-user-token"]
         const submission_data = req.body;
         const submitObservationDetails = await axios({
@@ -57,11 +57,11 @@ const submitObservation = async (req, res) => {
             },
             method: 'POST',
             data: submission_data,
-            url: `${API_ENDPOINTS.submitObservation}/${observation_id}`
+            url: `${API_ENDPOINTS.submitObservation}/${submission_id}`
         })
         res.status(200).json({
             "message": "SUCCESS",
-            "data": submitObservationDetails
+            "data": submitObservationDetails.data
         })
         // MentoringObservation.belongsTo(MentoringRelationship, {
         //     foreignKey: 'mentoring_relationship_id',
@@ -97,7 +97,7 @@ const submitObservation = async (req, res) => {
         // }
 
     } catch (error) {
-        logger.error(error, "Something went wrong while verifying observation link")
+        logger.error(error, "Something went wrong while submitting observation")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
     }
 
