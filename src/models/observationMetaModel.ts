@@ -26,6 +26,10 @@ const ObservationData = sequelize.define('observation_data', {
         type: DataTypes.STRING(250),
         allowNull: false,
     },
+    solution_link_id: {
+        type: DataTypes.STRING(250),
+        allowNull: false,
+    },
     competency_data: {
         type: DataTypes.ARRAY(DataTypes.JSONB),
     },

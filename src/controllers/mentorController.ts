@@ -23,7 +23,7 @@ const getObservationForMentee = async (req, res) => {
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
           }]
           // Add the condition to filter by mentee_id
         },
@@ -61,7 +61,7 @@ const getAllMenteeForMentor = async (req, res) => {
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
           }]
           // Add the condition to filter by mentee_id
         },

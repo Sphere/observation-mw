@@ -8,8 +8,9 @@ const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
     "verifyObservationLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
-    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
-    "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`
+    "getEntity": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
+    "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observationSubmissions/update`,
+    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`
 }
 
 // Function to handle missing parameters and return an appropriate response
@@ -58,13 +59,10 @@ const verifyobservationLink = async (req, res) => {
 
 };
 const addEntityToObservation = async (req, res) => {
-    const solutionId = req.query.solutionId;
+    const observation_id = req.query.observation_id;
     const mentee_id = req.query.mentee_id;
     const userToken = req.headers["x-authenticated-user-token"]
     const addEntityDetails = await axios({
-        params: {
-            solutionId
-        },
         headers: {
             accept: "application/json",
             "content-type": "application/json",
@@ -72,11 +70,10 @@ const addEntityToObservation = async (req, res) => {
             "X-authenticated-user-token": userToken
         },
         data: {
-            "users": mentee_id,
-            "roles": "MENTOR,MENTEE"
+            data: [mentee_id]
         },
         method: 'POST',
-        url: `${API_ENDPOINTS.addEntityToObservation}`,
+        url: `${API_ENDPOINTS.addEntityToObservation}/${observation_id}`,
     })
     res.status(200).json(addEntityDetails.data)
 }
@@ -84,14 +81,12 @@ const addEntityToObservation = async (req, res) => {
 const getobservationDetails = async (req, res) => {
     try {
         logger.info("Inside observation details route");
-        const solutionId = req.query.solutionId
-        const mentee_id = req.query.mentee_id;
-        logger.info("SolutionID", solutionId)
+        const { solution_id, mentee_id, mentor_id, submision_number } = req.query
         const userToken = req.headers["x-authenticated-user-token"]
         const observationDetails = await axios({
             params: {
-                "entityId": mentee_id,
-                "submissionNumber": 1
+                "entityId": mentor_id,
+                "submissionNumber": submision_number
             },
             headers: {
                 accept: "application/json",
@@ -104,7 +99,7 @@ const getobservationDetails = async (req, res) => {
                 "roles": "MENTOR,MENTEE"
             },
             method: 'POST',
-            url: `${API_ENDPOINTS.getObservationDetails}/${solutionId}`,
+            url: `${API_ENDPOINTS.getObservationDetails}/${solution_id}`,
         })
         res.status(200).json(observationDetails.data)
     } catch (error) {
@@ -113,12 +108,29 @@ const getobservationDetails = async (req, res) => {
     }
 
 };
+const getEntitiesForMentor = async (req) => {
+    const solution_id = req.body.solution_id;
+    const entityData = await axios({
+        params: {
+            solutionId: solution_id
+        },
+        headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            "Authorization": process.env.SB_API_KEY,
+            "X-authenticated-user-token": req.headers["x-authenticated-user-token"]
+        },
+        method: 'GET',
+        url: `${API_ENDPOINTS.getEntity}`,
+    })
+    return entityData;
+}
 export const observationOtpVerification = async (req, res) => {
     logger.info("Inside observation verification OTP route");
     const userToken = req.headers["x-authenticated-user-token"]
     try {
-        const { otp, mentor_id, mentee_id, observation_id } = req.body;
-        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "observation_id"], req, res)) return;
+        const { otp, mentor_id, mentee_id, solution_id } = req.body;
+        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req, res)) return;
         let otpVerified;
         try {
             otpVerified = await axios({
@@ -148,7 +160,7 @@ export const observationOtpVerification = async (req, res) => {
                 where: {
                     '$mentoring_relationship.mentor_id$': mentor_id,
                     '$mentoring_relationship.mentee_id$': mentee_id,
-                    observation_id: observation_id,
+                    solution_id: solution_id,
                 },
                 include: [
                     {
@@ -160,25 +172,28 @@ export const observationOtpVerification = async (req, res) => {
             });
             if (observationInstance) {
                 // Update the observation instance
-                await observationInstance.update({ observation_status: 'verified' });
+                const mentorEntityData = await getEntitiesForMentor(req);
+                const observation_id = mentorEntityData.data.result["_id"]
+                await observationInstance.update({
+                    otp_verification_status: 'verified',
+                    observation_id: observation_id
+                });
                 console.log('Update successful');
                 return res.status(200).json({
                     message: 'Update successful',
+                    observation_id: observation_id
                 });
             } else {
                 return res.status(400).json({
                     message: 'Observation not found',
                 });
             }
-
         }
         else if (otpVerified.data.type == "error") {
             res.status(400).json({
                 "message": "Mentee already verified"
             })
         }
-
-
     } catch (error) {
         console.log(error)
         res.status(400).json({
