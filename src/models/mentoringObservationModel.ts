@@ -36,7 +36,6 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
     },
     observation_id: {
         type: DataTypes.STRING(250),
-        allowNull: false,
     },
     otp_verification_status: {
         type: DataTypes.STRING(250),
