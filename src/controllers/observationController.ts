@@ -62,7 +62,8 @@ const getObservationSubmissionResult = async (req, res) => {
                 accept: "application/json",
                 "content-type": "application/json",
                 "Authorization": process.env.SB_API_KEY,
-                "X-authenticated-user-token": req.headers["x-authenticated-user-token"]
+                "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
+                "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
             },
             method: 'GET',
             url: `${API_ENDPOINTS.dbFind}`,
