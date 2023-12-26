@@ -45,7 +45,7 @@ const getEntitiesForMentor = async (req) => {
 const submitObservation = async (req, res) => {
     try {
         // const { mentor_id, mentee_id, solution_id, observation_id } = req.body;
-        const submission_id = req.query.observation_id;
+        const submission_id = req.query.submission_id;
         const userToken = req.headers["x-authenticated-user-token"]
         const submission_data = req.body;
         const submitObservationDetails = await axios({
