@@ -10,7 +10,8 @@ const API_ENDPOINTS = {
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
     "getEntity": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
     "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observationSubmissions/update`,
-    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`
+    "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`,
+    "dbFind": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/admin/dbFind/observationSubmissions`
 }
 
 // Function to handle missing parameters and return an appropriate response
@@ -42,6 +43,40 @@ const getEntitiesForMentor = async (req) => {
     })
     return entityData;
 }
+const getObservationSubmissionResult = async (req, res) => {
+    try {
+        const observation_filter_data = req.body;
+        const submissionResult = await axios({
+            data: {
+                "query": {
+                    "_id": observation_filter_data.query["_id"]
+                },
+                "mongoIdKeys": [
+                    "_id"
+                ],
+                "projection": [],
+                "limit": 200,
+                "skip": 0
+            },
+            headers: {
+                accept: "application/json",
+                "content-type": "application/json",
+                "Authorization": process.env.SB_API_KEY,
+                "X-authenticated-user-token": req.headers["x-authenticated-user-token"]
+            },
+            method: 'GET',
+            url: `${API_ENDPOINTS.dbFind}`,
+        })
+        res.status(200).json({
+            "message": "SUCCESS",
+            "data": submissionResult.data
+        })
+    } catch (error) {
+        logger.error(error, "Something went wrong while getting observation result")
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while getting observation result" });
+    }
+
+}
 const submitObservation = async (req, res) => {
     try {
         // const { mentor_id, mentee_id, solution_id, observation_id } = req.body;
@@ -63,38 +98,7 @@ const submitObservation = async (req, res) => {
             "message": "SUCCESS",
             "data": submitObservationDetails.data
         })
-        // MentoringObservation.belongsTo(MentoringRelationship, {
-        //     foreignKey: 'mentoring_relationship_id',
-        // });
-        // const observationInstance = await MentoringObservation.findOne({
-        //     where: {
-        //         '$mentoring_relationship.mentor_id$': mentor_id,
-        //         '$mentoring_relationship.mentee_id$': mentee_id,
-        //         solution_id: solution_id,
-        //     },
-        //     include: [
-        //         {
-        //             model: MentoringRelationship,
-        //             as: 'mentoring_relationship',
-        //             attributes: [],
-        //         },
-        //     ],
-        // });
-        // if (observationInstance) {
-        //     // Update the observation instance
-        //     await observationInstance.update({
-        //         submission_status: 'submitted',
-        //     });
-        //     console.log('Update successful');
-        //     res.status(200).json({
-        //         "message": "SUCCESS",
-        //         "data": submitObservationDetails
-        //     })
-        // } else {
-        //     return res.status(400).json({
-        //         message: 'Observation not found',
-        //     });
-        // }
+
 
     } catch (error) {
         logger.error(error, "Something went wrong while submitting observation")
@@ -267,6 +271,6 @@ export const observationOtpVerification = async (req, res) => {
 
 
 
-module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation }
+module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation, getObservationSubmissionResult }
 
 

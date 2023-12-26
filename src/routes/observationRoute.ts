@@ -21,3 +21,7 @@ observationRoute.post(
     "/submitObservation",
     observationController.submitObservation
 );
+observationRoute.post(
+    "/getObservationSubmissionResult",
+    observationController.getObservationSubmissionResult
+);
