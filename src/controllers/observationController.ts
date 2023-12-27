@@ -20,7 +20,7 @@ const observationServiceHeaders = (req) => {
         "content-type": "application/json",
         "Authorization": process.env.SB_API_KEY,
         "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
-        "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
+        "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
     }
 }
 
@@ -57,9 +57,10 @@ const getEntitiesForMentor = async (req) => {
 }
 export const updateSubmissionandCompetency = async (req, res) => {
     const { mentee_id, mentor_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
-
+    console.log(req.body)
+    if (handleMissingParams(["mentee_id", "mentor_id", "competency_name", "competency_id", "competency_level_id", "solution_name", "solution_id"], req.body, res)) return;
     try {
-        const submissionResult = await axios({
+        await axios({
             data: {
                 request: {
                     userId: mentee_id,
@@ -83,16 +84,22 @@ export const updateSubmissionandCompetency = async (req, res) => {
                     ],
                 }
             },
-            headers: observationServiceHeaders(req),
+            headers: {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": process.env.SB_API_KEY,
+                "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
+                "x-authenticated-userid": mentee_id
+            },
             method: 'PATCH',
             url: `${API_ENDPOINTS.passbookUpdate}`,
         })
-        res.status(200).json({
-            "message": "SUCCESS",
-            "data": submissionResult.data
-        })
+
     } catch (error) {
         logger.info("Something went wrong while passbook update")
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while passbook update" });
+
+
     }
     try {
         MentoringObservation.belongsTo(MentoringRelationship, {
@@ -115,7 +122,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
         if (observationInstance) {
             // Update the observation instance
             await observationInstance.update({
-                submission_status: 'verified',
+                submission_status: 'submitted',
             });
             logger.info("DB update successfull for observation submission")
 
@@ -126,6 +133,8 @@ export const updateSubmissionandCompetency = async (req, res) => {
         }
     } catch (error) {
         logger.info("Something went wrong while submission status update")
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while submission status update" });
+
     }
     res.status(200).json({
         message: 'Observation submission and passbook updated successfully',
