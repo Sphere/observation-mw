@@ -93,6 +93,7 @@ export const verifyOtp = async (req, res) => {
             url: API_ENDPOINTS.VERIFY_OTP,
         })
         res.status(200).json(verifyOtpResponse.data)
+        logger.info(verifyOtpResponse.data)
     } catch (error) {
         logger.error(error, "Something went wrong while sending OTP")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });

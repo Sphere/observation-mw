@@ -38,7 +38,6 @@ export const userContactInfo = async (userId) => {
         },
         url: descryptionServiceRoute
     });
-    console.log(decryptedData)
     logger.info(decryptedData.data.data[0])
     return decryptedData.data.data[0]
 }
