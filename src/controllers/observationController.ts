@@ -25,6 +25,7 @@ const observationServiceHeaders = (req) => {
 
 // Function to handle missing parameters and return an appropriate response
 const handleMissingParams = (params, input, res) => {
+    console.log(input)
     const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
@@ -129,7 +130,7 @@ export const verifyobservationLink = async (req, res) => {
 //Function to add entities to the observation
 export const addEntityToObservation = async (req, res) => {
     try {
-        const [observation_id, mentee_id] = req.query;
+        const { observation_id, mentee_id } = req.query;
         if (handleMissingParams(["observation_id", "mentee_id"], req.query, res)) return;
         const addEntityDetails = await axios({
             headers: observationServiceHeaders(req),
@@ -176,6 +177,7 @@ export const getobservationDetails = async (req, res) => {
 export const observationOtpVerification = async (req, res) => {
     logger.info("Observation verification OTP route");
     try {
+        console.log(req.body)
         const { otp, mentor_id, mentee_id, solution_id } = req.body;
         if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req.body, res)) return;
         let otpVerified;
