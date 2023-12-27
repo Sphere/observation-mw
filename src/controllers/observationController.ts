@@ -6,6 +6,7 @@ import { MentoringObservation } from "../models/mentoringObservationModel"
 
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
+    "passbookUpdate": `${process.env.HOST}api/user/v1/passbook`,
     "verifyObservationLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
     "getEntity": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
@@ -53,6 +54,82 @@ const getEntitiesForMentor = async (req) => {
         logger.error(error, "Something went wrong while getting observation result")
     }
 
+}
+export const updateSubmissionandCompetency = async (req, res) => {
+    const { mentee_id, mentor_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
+
+    try {
+        const submissionResult = await axios({
+            data: {
+                request: {
+                    userId: mentee_id,
+                    typeName: 'competency',
+                    competencyDetails: [
+                        {
+                            competencyId: competency_id.toString(),
+                            additionalParams: {
+                                competencyName: competency_name
+                            },
+                            acquiredDetails: {
+                                acquiredChannel: 'external',
+                                competencyLevelId: competency_level_id,
+                                additionalParams: {
+                                    competencyName: competency_name,
+                                    solutionName: solution_name,
+                                    solutionId: solution_id
+                                },
+                            },
+                        },
+                    ],
+                }
+            },
+            headers: observationServiceHeaders(req),
+            method: 'PATCH',
+            url: `${API_ENDPOINTS.passbookUpdate}`,
+        })
+        res.status(200).json({
+            "message": "SUCCESS",
+            "data": submissionResult.data
+        })
+    } catch (error) {
+        logger.info("Something went wrong while passbook update")
+    }
+    try {
+        MentoringObservation.belongsTo(MentoringRelationship, {
+            foreignKey: 'mentoring_relationship_id',
+        });
+        const observationInstance = await MentoringObservation.findOne({
+            where: {
+                '$mentoring_relationship.mentor_id$': mentor_id,
+                '$mentoring_relationship.mentee_id$': mentee_id,
+                solution_id: solution_id,
+            },
+            include: [
+                {
+                    model: MentoringRelationship,
+                    as: 'mentoring_relationship',
+                    attributes: [],
+                },
+            ],
+        });
+        if (observationInstance) {
+            // Update the observation instance
+            await observationInstance.update({
+                submission_status: 'verified',
+            });
+            logger.info("DB update successfull for observation submission")
+
+        } else {
+            return res.status(400).json({
+                message: 'Observation not found',
+            });
+        }
+    } catch (error) {
+        logger.info("Something went wrong while submission status update")
+    }
+    res.status(200).json({
+        message: 'Observation submission and passbook updated successfully',
+    });
 }
 //Function to get result of the submitted observations through DBFind API in ml-core service
 export const getObservationSubmissionResult = async (req, res) => {
@@ -225,7 +302,7 @@ export const observationOtpVerification = async (req, res) => {
                 });
                 logger.info("DB update successfull for OTP verification")
                 return res.status(200).json({
-                    message: 'OTP verification sompleted successfully',
+                    message: 'OTP verification completed successfully',
                     observation_id: observation_id
                 });
             } else {
