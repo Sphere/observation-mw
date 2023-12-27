@@ -3,6 +3,7 @@ import { logger } from "../utils/logger";
 import { requestValidator } from "../utils/requestValidator"
 import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
+import { Sequelize } from "sequelize";
 
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
@@ -55,10 +56,54 @@ const getEntitiesForMentor = async (req) => {
     }
 
 }
+const updateAttemptedCount = async (mentor_id, mentee_id, solution_id) => {
+    MentoringObservation.belongsTo(MentoringRelationship, {
+        foreignKey: 'mentoring_relationship_id',
+    });
+    const observationInstance = await MentoringObservation.findOne({
+        where: {
+            '$mentoring_relationship.mentor_id$': mentor_id,
+            '$mentoring_relationship.mentee_id$': mentee_id,
+            solution_id: solution_id,
+        },
+        include: [
+            {
+                model: MentoringRelationship,
+                as: 'mentoring_relationship',
+                attributes: [],
+            },
+        ],
+    });
+    if (observationInstance) {
+        // Update the observation instance
+        await observationInstance.update({
+            attempted_count: Sequelize.literal('"attempted_count" + 1')
+        });
+        return true
+
+    } else {
+        return false;
+    }
+}
 export const updateSubmissionandCompetency = async (req, res) => {
-    const { mentee_id, mentor_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
-    console.log(req.body)
-    if (handleMissingParams(["mentee_id", "mentor_id", "competency_name", "competency_id", "competency_level_id", "solution_name", "solution_id"], req.body, res)) return;
+    const { mentee_id, mentor_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
+    if (!is_passbook_update_required) {
+        const updateAttempt = updateAttemptedCount(mentor_id, mentee_id, solution_id)
+        if (updateAttempt) {
+            return res.status(200).json({
+                "status": "SUCCESS",
+                "message": "Attempted count updated successfully"
+            })
+        }
+        else {
+            return res.status(400).json({
+                "status": "FAILED",
+                "message": "Something went wrong while updating count of attempts"
+            })
+        }
+
+    }
+    if (handleMissingParams(["mentee_id", "mentor_id", "competency_name", "competency_id", "competency_level_id", "solution_name", "solution_id", "is_passbook_update_required"], req.body, res)) return;
     try {
         await axios({
             data: {
@@ -123,6 +168,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
             // Update the observation instance
             await observationInstance.update({
                 submission_status: 'submitted',
+                attempted_count: Sequelize.literal('"attempted_count" + 1')
             });
             logger.info("DB update successfull for observation submission")
 

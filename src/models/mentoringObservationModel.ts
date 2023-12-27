@@ -44,6 +44,10 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
     },
     submission_status: {
         type: DataTypes.STRING(250),
+    },
+    attempted_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
     }
 });
 
