@@ -237,12 +237,12 @@ export const addEntityToObservation = async (req, res) => {
 export const getobservationDetails = async (req, res) => {
     try {
         logger.info("Inside observation details route");
-        const { observation_id, mentee_id } = req.query
-        if (handleMissingParams(["observation_id", "mentee_id"], req.query, res)) return;
+        const { observation_id, mentee_id, submission_number } = req.query
+        if (handleMissingParams(["observation_id", "mentee_id", "submission_number"], req.query, res)) return;
         const observationDetails = await axios({
             params: {
                 "entityId": mentee_id,
-                "submissionNumber": 1
+                "submissionNumber": submission_number
             },
             headers: observationServiceHeaders(req),
             data: {
