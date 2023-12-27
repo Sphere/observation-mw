@@ -1,5 +1,4 @@
 import { Sequelize, DataTypes } from 'sequelize';
-
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
     host: process.env.POSTGRES_HOST,
@@ -45,17 +44,4 @@ export const MentoringRelationship = sequelize.define('mentoring_relationships',
         allowNull: false,
     }
 });
-
-
-// // Synchronize the model with the database (create the table)
-// sequelize.sync({ force: true })
-//     .then(() => {
-//         console.log('MentoringRelationship table created successfully');
-//     })
-//     .catch((error) => {
-//         console.error('Error creating MentoringRelationship table:', error);
-//     });
-
-
-// Export the model for use in other parts of your application
 module.exports = { MentoringRelationship }

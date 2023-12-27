@@ -1,6 +1,6 @@
-const express = require("express");
-const otpController = require("./../controllers/otpController")
+import express from "express";
+import { sendOtp, verifyOtp, resendOtp } from "./../controllers/otpController"
 export const otpRoute = express.Router();
-otpRoute.get("/sendOtp", otpController.sendOtp);
-otpRoute.get("/verifyOtp", otpController.verifyOtp)
-otpRoute.get("/resendOtp", otpController.resendOtp)
+otpRoute.get("/sendOtp", sendOtp);
+otpRoute.get("/verifyOtp", verifyOtp)
+otpRoute.get("/resendOtp", resendOtp)

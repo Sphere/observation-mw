@@ -13,10 +13,19 @@ const API_ENDPOINTS = {
     "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`,
     "dbFind": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/admin/dbFind/observationSubmissions`
 }
+const observationServiceHeaders = (req) => {
+    return {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": process.env.SB_API_KEY,
+        "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
+        "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
+    }
+}
 
 // Function to handle missing parameters and return an appropriate response
-const handleMissingParams = (params, req, res) => {
-    const missingParams = requestValidator(params, req.body);
+const handleMissingParams = (params, input, res) => {
+    const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
         return res.status(400).json({
@@ -26,24 +35,26 @@ const handleMissingParams = (params, req, res) => {
     }
     return false;
 };
+//Function to get entity ID for the moentor
 const getEntitiesForMentor = async (req) => {
-    const solution_id = req.body.solution_id;
-    const entityData = await axios({
-        params: {
-            solutionId: solution_id
-        },
-        headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "Authorization": process.env.SB_API_KEY,
-            "X-authenticated-user-token": req.headers["x-authenticated-user-token"]
-        },
-        method: 'GET',
-        url: `${API_ENDPOINTS.getEntity}`,
-    })
-    return entityData;
+    try {
+        const solution_id = req.body.solution_id;
+        const entityData = await axios({
+            params: {
+                solutionId: solution_id
+            },
+            headers: observationServiceHeaders(req),
+            method: 'GET',
+            url: `${API_ENDPOINTS.getEntity}`,
+        })
+        return entityData;
+    } catch (error) {
+        logger.error(error, "Something went wrong while getting observation result")
+    }
+
 }
-const getObservationSubmissionResult = async (req, res) => {
+//Function to get result of the submitted observations through DBFind API in ml-core service
+export const getObservationSubmissionResult = async (req, res) => {
     try {
         const observation_filter_data = req.body;
         const submissionResult = await axios({
@@ -58,13 +69,7 @@ const getObservationSubmissionResult = async (req, res) => {
                 "limit": 200,
                 "skip": 0
             },
-            headers: {
-                accept: "application/json",
-                "content-type": "application/json",
-                "Authorization": process.env.SB_API_KEY,
-                "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
-                "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
-            },
+            headers: observationServiceHeaders(req),
             method: 'GET',
             url: `${API_ENDPOINTS.dbFind}`,
         })
@@ -78,19 +83,14 @@ const getObservationSubmissionResult = async (req, res) => {
     }
 
 }
-const submitObservation = async (req, res) => {
+//Function to submit observation
+export const submitObservation = async (req, res) => {
     try {
-        // const { mentor_id, mentee_id, solution_id, observation_id } = req.body;
         const submission_id = req.query.submission_id;
-        const userToken = req.headers["x-authenticated-user-token"]
+        if (handleMissingParams(["submission_id"], req.query, res)) return;
         const submission_data = req.body;
         const submitObservationDetails = await axios({
-            headers: {
-                accept: "application/json",
-                "content-type": "application/json",
-                "Authorization": process.env.SB_API_KEY,
-                "X-authenticated-user-token": userToken
-            },
+            headers: observationServiceHeaders(req),
             method: 'POST',
             data: submission_data,
             url: `${API_ENDPOINTS.submitObservation}/${submission_id}`
@@ -99,84 +99,65 @@ const submitObservation = async (req, res) => {
             "message": "SUCCESS",
             "data": submitObservationDetails.data
         })
-
-
     } catch (error) {
         logger.error(error, "Something went wrong while submitting observation")
-        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while submitting observation" });
     }
 
 }
-
-
 //End-points for verifying observation link
-const verifyobservationLink = async (req, res) => {
+export const verifyobservationLink = async (req, res) => {
     try {
         logger.info("Inside verify observation link route");
         const observationLink = req.query.observationLink
-        if (!observationLink) {
-            res.status(400).json({
-                "type": "Failed",
-                "error": `Missing parameters: Observation link}`
-            })
-        }
-        const userToken = req.headers["x-authenticated-user-token"]
+        if (handleMissingParams(["observationLink"], req.query, res)) return;
         const observationDetails = await axios({
             params: {
                 "createProject": "false"
             },
-            headers: {
-                accept: "application/json",
-                "content-type": "application/json",
-                "Authorization": process.env.SB_API_KEY,
-                "X-authenticated-user-token": userToken
-            },
+            headers: observationServiceHeaders(req),
             method: 'POST',
             url: `${API_ENDPOINTS.verifyObservationLink}/${observationLink}`,
         })
         res.status(200).json(observationDetails.data)
     } catch (error) {
         logger.error(error, "Something went wrong while verifying observation link")
-        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while verifying observation link" });
     }
 
 };
-const addEntityToObservation = async (req, res) => {
-    const observation_id = req.query.observation_id;
-    const mentee_id = req.query.mentee_id;
-    const userToken = req.headers["x-authenticated-user-token"]
-    const addEntityDetails = await axios({
-        headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "Authorization": process.env.SB_API_KEY,
-            "X-authenticated-user-token": userToken
-        },
-        data: {
-            data: [mentee_id]
-        },
-        method: 'POST',
-        url: `${API_ENDPOINTS.addEntityToObservation}/${observation_id}`,
-    })
-    res.status(200).json(addEntityDetails.data)
+//Function to add entities to the observation
+export const addEntityToObservation = async (req, res) => {
+    try {
+        const [observation_id, mentee_id] = req.query;
+        if (handleMissingParams(["observation_id", "mentee_id"], req.query, res)) return;
+        const addEntityDetails = await axios({
+            headers: observationServiceHeaders(req),
+            data: {
+                data: [mentee_id]
+            },
+            method: 'POST',
+            url: `${API_ENDPOINTS.addEntityToObservation}/${observation_id}`,
+        })
+        res.status(200).json(addEntityDetails.data)
+    } catch (error) {
+        logger.error(error, "Something went wrong while adding entity to observation")
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while adding entity to observation" });
+    }
+
 }
 //Endpoints for getting observation details
-const getobservationDetails = async (req, res) => {
+export const getobservationDetails = async (req, res) => {
     try {
         logger.info("Inside observation details route");
         const { observation_id, mentee_id, mentor_id, submision_number } = req.query
-        const userToken = req.headers["x-authenticated-user-token"]
+        if (handleMissingParams(["observation_id", "mentor_id", "mentee_id", "submision_number"], req.query, res)) return;
         const observationDetails = await axios({
             params: {
                 "entityId": mentee_id,
                 "submissionNumber": submision_number
             },
-            headers: {
-                accept: "application/json",
-                "content-type": "application/json",
-                "Authorization": process.env.SB_API_KEY,
-                "X-authenticated-user-token": userToken
-            },
+            headers: observationServiceHeaders(req),
             data: {
                 "users": mentor_id,
                 "roles": "MENTOR,MENTEE"
@@ -186,18 +167,17 @@ const getobservationDetails = async (req, res) => {
         })
         res.status(200).json(observationDetails.data)
     } catch (error) {
-        logger.error(error, "Something went wrong while fetching survey details")
-        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+        logger.error(error, "Something went wrong while fetching observation questions")
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while fetching observation questions" });
     }
 
 };
 
 export const observationOtpVerification = async (req, res) => {
-    logger.info("Inside observation verification OTP route");
-    const userToken = req.headers["x-authenticated-user-token"]
+    logger.info("Observation verification OTP route");
     try {
         const { otp, mentor_id, mentee_id, solution_id } = req.body;
-        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req, res)) return;
+        if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req.body, res)) return;
         let otpVerified;
         try {
             otpVerified = await axios({
@@ -205,21 +185,17 @@ export const observationOtpVerification = async (req, res) => {
                     otp,
                     menteeId: mentee_id
                 },
-                headers: {
-                    accept: "application/json",
-                    "content-type": "application/json",
-                    "Authorization": process.env.SB_API_KEY,
-                    "X-authenticated-user-token": userToken
-                },
+                headers: observationServiceHeaders(req),
                 method: 'GET',
                 url: `${API_ENDPOINTS.verifyOtp}`,
             })
         } catch (error) {
-            logger.error(error, "Something went wrong while survey otp verification")
-            return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+            logger.error(error, "MSG-91 API issue")
+            return res.status(500).json({ "type": "Failed", "error": "Unable to fulfill the verify OTP request due to a third-party API failure." });
         }
 
         if (otpVerified.data.type == "success") {
+            logger.info("OTP verified successfully from msg-91")
             MentoringObservation.belongsTo(MentoringRelationship, {
                 foreignKey: 'mentoring_relationship_id',
             });
@@ -245,9 +221,9 @@ export const observationOtpVerification = async (req, res) => {
                     otp_verification_status: 'verified',
                     observation_id: observation_id
                 });
-                console.log('Update successful');
+                logger.info("DB update successfull for OTP verification")
                 return res.status(200).json({
-                    message: 'Update successful',
+                    message: 'OTP verification sompleted successfully',
                     observation_id: observation_id
                 });
             } else {
@@ -258,7 +234,7 @@ export const observationOtpVerification = async (req, res) => {
         }
         else if (otpVerified.data.type == "error") {
             res.status(400).json({
-                "message": "Mentee already verified"
+                "message": otpVerified.data.type.message
             })
         }
     } catch (error) {
@@ -270,8 +246,5 @@ export const observationOtpVerification = async (req, res) => {
 
 }
 
-
-
-module.exports = { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation, getObservationSubmissionResult }
 
 

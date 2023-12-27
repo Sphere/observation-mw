@@ -1,27 +1,27 @@
-const observationController = require("./../controllers/observationController");
+import { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation, getObservationSubmissionResult } from "./../controllers/observationController"
 import { Router } from 'express'
 export const observationRoute = Router();
 observationRoute.post(
     "/getobservationDetails",
-    observationController.getobservationDetails
+    getobservationDetails
 );
 observationRoute.post(
     "/verifyobservationLink",
-    observationController.verifyobservationLink
+    verifyobservationLink
 );
 observationRoute.post(
     "/observationOtpVerification",
-    observationController.observationOtpVerification
+    observationOtpVerification
 );
 observationRoute.post(
     "/addEntityToObservation",
-    observationController.addEntityToObservation
+    addEntityToObservation
 );
 observationRoute.post(
     "/submitObservation",
-    observationController.submitObservation
+    submitObservation
 );
 observationRoute.post(
     "/getObservationSubmissionResult",
-    observationController.getObservationSubmissionResult
+    getObservationSubmissionResult
 );

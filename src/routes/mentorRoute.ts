@@ -1,12 +1,15 @@
-const mentorController = require("./../controllers/mentorController");
+import {
+  getAllMenteeForMentor,
+  getObservationForMentee
+} from "./../controllers/mentorController"
 import { Router } from 'express'
 export const mentorRoute = Router();
 mentorRoute.get(
   "/getAllMenteeForMentor",
-  mentorController.getAllMenteeForMentor
+  getAllMenteeForMentor
 );
 
 mentorRoute.get(
   "/getObservationForMentee",
-  mentorController.getObservationForMentee
+  getObservationForMentee
 );

@@ -1,20 +1,16 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 import { ObservationData } from "../models/observationMetaModel";
-
-
-const getObservationForMentee = async (req, res) => {
+export const getObservationForMentee = async (req, res) => {
   const { menteeId } = req.query;
-
   try {
-
     MentoringRelationship.hasMany(MentoringObservation, {
       foreignKey: 'mentoring_relationship_id',
     });
     MentoringObservation.hasMany(ObservationData, {
       foreignKey: 'solution_id',
     });
-    const result = await MentoringRelationship.findAll({
+    const menteeObservationData = await MentoringRelationship.findAll({
       attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
       include: [
         {
@@ -25,7 +21,6 @@ const getObservationForMentee = async (req, res) => {
             as: 'observationData',
             attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
           }]
-          // Add the condition to filter by mentee_id
         },
 
       ],
@@ -35,24 +30,24 @@ const getObservationForMentee = async (req, res) => {
 
     res.status(200).json({
       message: "SUCCESS",
-      data: result,
+      data: menteeObservationData,
     });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({
-      message: "Internal Server Error",
+      message: "Something went wrong while fetching MENTEE data",
     });
   }
 };
 
-const getAllMenteeForMentor = async (req, res) => {
+export const getAllMenteeForMentor = async (req, res) => {
   const { mentorId } = req.query;
 
   try {
     MentoringRelationship.hasMany(MentoringObservation, {
       foreignKey: 'mentoring_relationship_id',
     });
-    const result = await MentoringRelationship.findAll({
+    const menteeMentorObservationData = await MentoringRelationship.findAll({
       attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
       include: [
         {
@@ -63,26 +58,18 @@ const getAllMenteeForMentor = async (req, res) => {
             as: 'observationData',
             attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
           }]
-          // Add the condition to filter by mentee_id
         },
-
       ],
       where: { mentor_id: mentorId }, subQuery: false,
     });
-
     res.status(200).json({
       message: "SUCCESS",
-      data: result,
+      data: menteeMentorObservationData,
     });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({
-      message: "Internal Server Error",
+      message: "Something went wrong while fetching MENTOR data",
     });
   }
-};
-
-module.exports = {
-  getAllMenteeForMentor,
-  getObservationForMentee
 };

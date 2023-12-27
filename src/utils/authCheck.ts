@@ -1,5 +1,10 @@
 import { Keycloak } from "keycloak-backend"
 import { logger } from "./logger";
+import axios from "axios";
+
+const API_ENDPOINTS = {
+    "userRead": `${process.env.HOST}api/user/v1/read`,
+}
 export let authCheck = async (req, res, next) => {
     let authenticatedToken = req.headers["x-authenticated-user-token"];
     logger.info('Entered into auth check');
@@ -16,13 +21,30 @@ export let authCheck = async (req, res, next) => {
         const token = await keycloak.jwt.verify(authenticatedToken)
         const decodedTokenArray = token.content.sub.split(":")
         const userId = decodedTokenArray[decodedTokenArray.length - 1]
-        req.userId = userId
-        console.log(req.userId)
+        const userRoles = await userRoleCheck(authenticatedToken, userId);
+        if (!userRoles.includes("OBS_MENTOR")) {
+            return res.status(401).json({ error: 'Invalid user role: Expected OBS_MENTOR role' });
+        }
+        req.mentorId = userId
         next();
     } catch (error) {
         console.log(error)
         return res.status(401).json({ error: 'Unauthorized - Invalid token' });
 
     }
+}
+const userRoleCheck = async (userToken, userId) => {
+    const userReadResponse = await axios({
+        headers: {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Authorization": process.env.SB_API_KEY,
+            "X-authenticated-user-token": userToken,
+        },
+        method: 'GET',
+        url: `${API_ENDPOINTS.userRead}/${userId}`,
+    })
+    return userReadResponse.data.result.response.roles
+
 }
 module.exports = { authCheck }

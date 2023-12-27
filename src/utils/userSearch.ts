@@ -1,8 +1,6 @@
 import { logger } from "./logger";
-
-const axios = require("axios")
-const cassandra = require('cassandra-driver');
-
+import axios from "axios";
+import cassandra from 'cassandra-driver';
 const cassandraPort = process.env.CASSANDRA_PORT;
 const client = new cassandra.Client({
     contactPoints: [cassandraPort],

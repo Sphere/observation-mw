@@ -1,9 +1,7 @@
-const axios = require("axios")
+import axios from "axios"
 import { requestValidator } from "../utils/requestValidator"
 import { logger } from "../utils/logger"
 import { userContactInfo } from "../utils/userSearch"
-
-
 const API_ENDPOINTS = {
     USER_SEARCH: `${process.env.LEARNER_SERVICE_API_BASE}/private/user/v1/search`,
     SEND_OTP: "https://control.msg91.com/api/v5/otp",
@@ -14,11 +12,9 @@ const API_ENDPOINTS = {
 const msg91AuthKey = process.env.MSG_91_AUTH_KEY
 const msg91TemplateId = process.env.MSG_91_TEMPLATE_ID
 const countryCode = "+91";
-
-
 // Function to handle missing parameters and return an appropriate response
-const handleMissingParams = (params, req, res) => {
-    const missingParams = requestValidator(params, req.query);
+const handleMissingParams = (params, input, res) => {
+    const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
         return res.status(400).json({
@@ -28,11 +24,10 @@ const handleMissingParams = (params, req, res) => {
     }
     return false;
 };
-
 // Endpoint for sending OTP
-const sendOtp = async (req, res) => {
+export const sendOtp = async (req, res) => {
     const menteeId = req.query.menteeId;
-    if (handleMissingParams(["menteeId"], req, res)) return;
+    if (handleMissingParams(["menteeId"], req.query, res)) return;
     let phone = await userContactInfo(menteeId)
     phone = countryCode + phone;
     logger.info(phone)
@@ -70,21 +65,17 @@ const sendOtp = async (req, res) => {
             res.status(200).json(sendOtpResponse.data)
         }
     } catch (error) {
-        // Handle errors
         logger.error(error, "Something went wrong while sending OTP")
-        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while sending OTP" });
 
     }
 }
 // Endpoint for verifying OTP
-const verifyOtp = async (req, res) => {
-    const otp = req.query.otp;
-    const menteeId = req.query.menteeId;
-    if (handleMissingParams(["otp", "menteeId"], req, res)) return;
+export const verifyOtp = async (req, res) => {
+    const [otp, menteeId] = req.query;
+    if (handleMissingParams(["otp", "menteeId"], req.query, res)) return;
     let phone = await userContactInfo(menteeId);
     phone = countryCode + phone;
-    // Check for missing parameters
-
     try {
         // Verify OTP using Msg91 API
         logger.info("Inside verify OTP route");
@@ -103,19 +94,16 @@ const verifyOtp = async (req, res) => {
         })
         res.status(200).json(verifyOtpResponse.data)
     } catch (error) {
-        // Handle errors
         logger.error(error, "Something went wrong while sending OTP")
         return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
 
     }
-
 }
 // Endpoint for resending OTP
-const resendOtp = async (req, res) => {
+export const resendOtp = async (req, res) => {
     logger.info("Inside resend OTP route")
-    // Check for missing parameters
     const phone = req.query.phone;
-    if (handleMissingParams(["otp", "phone"], req, res)) return;
+    if (handleMissingParams(["phone"], req.query, res)) return;
     try {
         // Resend OTP using Msg91 API
         const verifyOtpResponse = await axios({
@@ -133,10 +121,9 @@ const resendOtp = async (req, res) => {
         })
         res.status(200).json(verifyOtpResponse.data)
     } catch (error) {
-        logger.error(error, "Something went wrong while sending OTP")
-        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+        logger.error(error, "Something went wrong while resending OTP")
+        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while resending OTP" });
 
     }
 
 }
-module.exports = { sendOtp, verifyOtp, resendOtp }

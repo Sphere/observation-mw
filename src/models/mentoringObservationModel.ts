@@ -1,8 +1,6 @@
 import { Sequelize, DataTypes } from 'sequelize';
-
 import { MentoringRelationship } from "./mentoringRelationshipModel"
 import { ObservationData } from './observationMetaModel';
-// import { ObservationData } from './observationMetaModel';
 
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
@@ -51,7 +49,7 @@ const MentoringObservation = sequelize.define('mentoring_observations', {
 
 MentoringObservation.belongsTo(MentoringRelationship, {
     foreignKey: 'mentoring_relationship_id',
-    as: 'relationship', // Use a unique alias
+    as: 'relationship',
 });
 
 MentoringObservation.hasOne(ObservationData, {
@@ -59,20 +57,6 @@ MentoringObservation.hasOne(ObservationData, {
     sourceKey: 'solution_id',
     as: 'observationData',
 });
-// ObservationData.belongsTo(MentoringObservation, {
-//     foreignKey: 'solution_id',
-//     as: 'observationData',
-// });
-
-// Synchronize the model with the database (create the table)
-// sequelize.sync()
-//     .then(() => {
-//         console.log('MentoringObservation table created successfully');
-//     })
-//     .catch((error) => {
-//         console.error('Error creating MentoringObservation table:', error);
-//     });
-// Synchronize the models with the database (create the tables)
 sequelize
     .sync()
     .then(() => {
@@ -81,5 +65,4 @@ sequelize
     .catch((error) => {
         console.error('Error creating tables:', error);
     });
-// Export the model for use in other parts of your application
 export { MentoringObservation }

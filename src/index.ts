@@ -1,11 +1,10 @@
+require('dotenv').config();
 import express from "express";
 import { router } from "./routes/index";
 import { logger } from "./utils/logger";
 import { authCheck } from "../src/utils/authCheck";
 import bodyParser from 'body-parser';
-
 const app = express();
-
 app.use((req, _res, next) => {
   logger.info(`Requested Route: ${req.method} ${req.url}`);
   next();

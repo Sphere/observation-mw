@@ -1,7 +1,4 @@
-// import { MentoringObservation } from "./mentoringObservationModel";
 import { Sequelize, DataTypes } from 'sequelize';
-
-
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
     host: process.env.POSTGRES_HOST,
@@ -21,7 +18,6 @@ const ObservationData = sequelize.define('observation_data', {
         allowNull: false,
         primaryKey: true,
     },
-    // Define other fields for observation data
     solution_name: {
         type: DataTypes.STRING(250),
         allowNull: false,

@@ -1,6 +1,5 @@
 import { logger } from "./logger";
-
-const { Sequelize } = require("sequelize");
+import { Sequelize } from "sequelize";
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
     host: process.env.POSTGRES_HOST,
