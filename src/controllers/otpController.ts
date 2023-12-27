@@ -72,7 +72,7 @@ export const sendOtp = async (req, res) => {
 }
 // Endpoint for verifying OTP
 export const verifyOtp = async (req, res) => {
-    const [otp, menteeId] = req.query;
+    const { otp, menteeId } = req.query;
     if (handleMissingParams(["otp", "menteeId"], req.query, res)) return;
     let phone = await userContactInfo(menteeId);
     phone = countryCode + phone;
