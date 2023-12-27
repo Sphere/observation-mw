@@ -15,7 +15,7 @@ export const getObservationForMentee = async (req, res) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status'],
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
           include: [{
             model: ObservationData,
             as: 'observationData',
@@ -52,7 +52,7 @@ export const getAllMenteeForMentor = async (req, res) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status'],
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
           include: [{
             model: ObservationData,
             as: 'observationData',
