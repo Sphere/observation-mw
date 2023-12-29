@@ -117,7 +117,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
                                 competencyName: competency_name
                             },
                             acquiredDetails: {
-                                acquiredChannel: 'external',
+                                acquiredChannel: 'admin',
                                 competencyLevelId: competency_level_id,
                                 additionalParams: {
                                     competencyName: competency_name,
