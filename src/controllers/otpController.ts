@@ -103,8 +103,9 @@ export const verifyOtp = async (req, res) => {
 // Endpoint for resending OTP
 export const resendOtp = async (req, res) => {
     logger.info("Inside resend OTP route")
-    const phone = req.query.phone;
-    if (handleMissingParams(["phone"], req.query, res)) return;
+    const { menteeId } = req.query;
+    if (handleMissingParams(["menteeId"], req.query, res)) return;
+    let phone = await userContactInfo(menteeId);
     try {
         // Resend OTP using Msg91 API
         const verifyOtpResponse = await axios({
