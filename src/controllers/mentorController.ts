@@ -1,7 +1,6 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 import { ObservationData } from "../models/observationMetaModel";
-import { Sequelize } from "sequelize";
 export const getObservationForMentee = async (req, res) => {
   const { menteeId } = req.query;
   try {
@@ -76,29 +75,37 @@ export const getAllMenteeForMentor = async (req, res) => {
 };
 export const getMentorMenteeDetailsFiltered = async (req, res) => {
   try {
-    const { menteeId, mentorId } = req.query;
-    const observationsByFilter = await MentoringObservation.findAll({
-      attributes: [
-        [Sequelize.literal('COUNT(*)'), 'attempted_count'],
-        'submission_status',
-        'otp_verification_status',
-        'observation_id',
-        "solution_id"
+    const { mentorId, menteeId, filters } = req.body;
+    const filteredObject = Object.fromEntries(
+      Object.entries(filters).filter(([_key, value]) => value !== '')
+    );
+    MentoringRelationship.hasMany(MentoringObservation, {
+      foreignKey: 'mentoring_relationship_id',
+    });
+    const menteeMentorObservationData = await MentoringRelationship.findAll({
+      attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
+      include: [
+        {
+          model: MentoringObservation,
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          where: filteredObject,
+          include: [{
+            model: ObservationData,
+            as: 'observationData',
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+          }]
+        },
       ],
-      include: [{
-        attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
-        model: MentoringRelationship,
-        where: { mentor_id: mentorId, mentee_id: menteeId },
-      }, {
-        model: ObservationData,
-        attributes: ['solution_id', 'solution_name', 'solution_link_id', 'competency_data'],
-      }],
-      group: ['submission_status', 'otp_verification_status'],
+      where: { mentor_id: mentorId, mentee_id: menteeId }, subQuery: false,
     });
     res.status(200).json({
       message: "SUCCESS",
-      data: observationsByFilter,
+      data: menteeMentorObservationData,
     });
   } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({
+      message: "Something went wrong while fetching MENTOR data",
+    });
   }
 }
