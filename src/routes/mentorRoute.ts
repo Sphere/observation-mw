@@ -1,6 +1,7 @@
 import {
   getAllMenteeForMentor,
-  getObservationForMentee
+  getObservationForMentee,
+  getMentorMenteeDetailsFiltered
 } from "./../controllers/mentorController"
 import { Router } from 'express'
 export const mentorRoute = Router();
@@ -12,4 +13,8 @@ mentorRoute.get(
 mentorRoute.get(
   "/getObservationForMentee",
   getObservationForMentee
+);
+mentorRoute.get(
+  "/getMentorMenteeDetailsFiltered",
+  getMentorMenteeDetailsFiltered
 );

@@ -1,6 +1,7 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 import { ObservationData } from "../models/observationMetaModel";
+import sequelize from "sequelize/types/sequelize";
 export const getObservationForMentee = async (req, res) => {
   const { menteeId } = req.query;
   try {
@@ -73,3 +74,31 @@ export const getAllMenteeForMentor = async (req, res) => {
     });
   }
 };
+export const getMentorMenteeDetailsFiltered = async (req, res) => {
+  try {
+    const { menteeId, mentorId } = req.query;
+    const observationsByFilter = await MentoringObservation.findAll({
+      attributes: [
+        [sequelize.literal('COUNT(*)'), 'attempted_count'],
+        'submission_status',
+        'otp_verification_status',
+        'observation_id',
+        "solution_id"
+      ],
+      include: [{
+        attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
+        model: MentoringRelationship,
+        where: { mentor_id: mentorId, mentee_id: menteeId },
+      }, {
+        model: ObservationData,
+        attributes: ['solution_id', 'solution_name', 'solution_link_id', 'competency_data'],
+      }],
+      group: ['submission_status', 'otp_verification_status'],
+    });
+    res.status(200).json({
+      message: "SUCCESS",
+      data: observationsByFilter,
+    });
+  } catch (error) {
+  }
+}
