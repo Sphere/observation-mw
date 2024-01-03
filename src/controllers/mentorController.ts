@@ -75,9 +75,9 @@ export const getAllMenteeForMentor = async (req, res) => {
 };
 export const getMentorMenteeDetailsFiltered = async (req, res) => {
   try {
-    const { mentorId, menteeId, filters } = req.body;
-    const filteredObject = Object.fromEntries(
-      Object.entries(filters).filter(([_key, value]) => value !== '')
+    const { menteeMentorDetails, filters } = req.body;
+    const mentorMenteeFilters = Object.fromEntries(
+      Object.entries(menteeMentorDetails).filter(([_key, value]) => value !== '')
     );
     MentoringRelationship.hasMany(MentoringObservation, {
       foreignKey: 'mentoring_relationship_id',
@@ -88,7 +88,7 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
         {
           model: MentoringObservation,
           attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
-          where: filteredObject,
+          where: filters,
           include: [{
             model: ObservationData,
             as: 'observationData',
@@ -96,7 +96,7 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
           }]
         },
       ],
-      where: { mentor_id: mentorId, mentee_id: menteeId }, subQuery: false,
+      where: mentorMenteeFilters, subQuery: false,
     });
     res.status(200).json({
       message: "SUCCESS",
