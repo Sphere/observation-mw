@@ -14,7 +14,7 @@ mentorRoute.get(
   "/getObservationForMentee",
   getObservationForMentee
 );
-mentorRoute.get(
+mentorRoute.post(
   "/getMentorMenteeDetailsFiltered",
   getMentorMenteeDetailsFiltered
 );
