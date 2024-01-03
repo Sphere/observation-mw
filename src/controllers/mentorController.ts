@@ -1,7 +1,7 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 import { ObservationData } from "../models/observationMetaModel";
-import sequelize from "sequelize/types/sequelize";
+import { Sequelize } from "sequelize";
 export const getObservationForMentee = async (req, res) => {
   const { menteeId } = req.query;
   try {
@@ -79,7 +79,7 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
     const { menteeId, mentorId } = req.query;
     const observationsByFilter = await MentoringObservation.findAll({
       attributes: [
-        [sequelize.literal('COUNT(*)'), 'attempted_count'],
+        [Sequelize.literal('COUNT(*)'), 'attempted_count'],
         'submission_status',
         'otp_verification_status',
         'observation_id',
