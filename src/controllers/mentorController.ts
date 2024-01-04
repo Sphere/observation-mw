@@ -103,9 +103,79 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
       data: menteeMentorObservationData,
     });
   } catch (error) {
-    console.error('Error:', error);
     res.status(500).json({
       message: "Something went wrong while fetching MENTOR data",
     });
   }
 }
+export const mentorObservationFilteredCount = async (req, res) => {
+  try {
+    const { mentorId } = req.query;
+    const filters = {
+      "pending": {
+        "otp_verification_status": "",
+        "submission_status": ""
+      },
+      "inProgress": {
+        "otp_verification_status": "verified",
+        "submission_status": ""
+      },
+      "completed": {
+        "otp_verification_status": "verified",
+        "submission_status": "submitted"
+      }
+    }
+    const filterCount = {
+      "pending": 0,
+      "inProgress": 0,
+      "completed": 0
+    }
+    const filterArray = ["pending", "inProgress", "completed"]
+    for (const element of filterArray) {
+
+      try {
+        console.log(element)
+        MentoringRelationship.hasMany(MentoringObservation, {
+          foreignKey: 'mentoring_relationship_id',
+        });
+        const menteeMentorObservationData = await MentoringRelationship.findAll({
+          attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info', 'createdat', 'updatedat'],
+          include: [
+            {
+              model: MentoringObservation,
+              attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+              where: filters[element],
+              include: [{
+                model: ObservationData,
+                as: 'observationData',
+                attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+              }]
+            },
+          ],
+          where: { mentor_id: mentorId }, subQuery: false,
+        })
+        const combinedMenteeData = menteeMentorObservationData.map((element) => {
+          return (element as any).mentoring_observations;
+        });
+        const filteredDataLength = combinedMenteeData.flat().length;
+        filterCount[element] = filteredDataLength
+      } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({
+          message: "Something went wrong while fetching MENTOR data",
+        });
+      }
+    };
+    res.status(200).json({
+      "message": "SUCESS",
+      "data": filterCount
+    })
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong while fetching MENTOR data",
+    });
+  }
+
+}
+
+
