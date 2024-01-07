@@ -106,6 +106,7 @@ export const resendOtp = async (req, res) => {
     const { menteeId } = req.query;
     if (handleMissingParams(["menteeId"], req.query, res)) return;
     let phone = await userContactInfo(menteeId);
+    phone = countryCode + phone;
     try {
         // Resend OTP using Msg91 API
         const verifyOtpResponse = await axios({
