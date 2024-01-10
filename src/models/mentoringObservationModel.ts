@@ -61,12 +61,12 @@ MentoringObservation.hasOne(ObservationData, {
     sourceKey: 'solution_id',
     as: 'observationData',
 });
-sequelize
-    .sync()
-    .then(() => {
-        console.log('Tables created successfully');
-    })
-    .catch((error) => {
-        console.error('Error creating tables:', error);
-    });
+// sequelize
+//     .sync()
+//     .then(() => {
+//         console.log('Tables created successfully');
+//     })
+//     .catch((error) => {
+//         console.error('Error creating tables:', error);
+//     });
 export { MentoringObservation }
