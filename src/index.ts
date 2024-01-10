@@ -13,6 +13,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(authCheck);
 app.use("/v1", router);
-app.listen(3009, () => {
-  logger.info("Sever listening on port 3009");
+app.listen(process.env.APPLICATION_PORT, () => {
+  logger.info(`Sever listening on port ${process.env.APPLICATION_PORT}`);
 });
