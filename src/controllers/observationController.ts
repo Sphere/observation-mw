@@ -121,6 +121,8 @@ export const updateSubmissionandCompetency = async (req, res) => {
                                 competencyLevelId: competency_level_id,
                                 additionalParams: {
                                     competencyName: competency_name,
+                                    courseName: solution_name,
+                                    courseId: solution_id,
                                     solutionName: solution_name,
                                     solutionId: solution_id
                                 },
