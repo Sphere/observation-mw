@@ -60,6 +60,6 @@ export const MenteeSubmissionAttempts = sequelize.define('mentee_submission_atte
 MenteeSubmissionAttempts.hasOne(ObservationData, {
     foreignKey: 'solution_id',
     sourceKey: 'solution_id',
-    as: 'observationData',
+    as: 'observationDataAttempts',
 });
 module.exports = { MenteeSubmissionAttempts }
