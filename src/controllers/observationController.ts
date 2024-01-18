@@ -213,7 +213,11 @@ export const getObservationSubmissionResult = async (req, res) => {
             method: 'GET',
             url: `${API_ENDPOINTS.dbFind}`,
         })
-        logger.info(submissionResult)
+        logger.info(submissionResult.data.result)
+        logger.info(submissionResult.data.result[0])
+        logger.info(submissionResult.data.result[0].pointsBasedPercentageScore)
+
+
         if (submissionResult) {
             const attemptResultUpdateDetails = {
                 result_percentage: submissionResult.data.result[0].pointsBasedPercentageScore,
