@@ -59,14 +59,13 @@ const getEntitiesForMentor = async (req) => {
 
 }
 
-const updateMenteeObservationDetails = async (mentor_id, mentee_id, solution_id, details) => {
+const updateMenteeObservationDetails = async (mentoring_relationship_id, solution_id, details) => {
     try {
         logger.info("Inside updateMenteeObservationDetails")
         const observationInstance = await MentoringObservation.findOne({
             where: {
-                '$mentoring_relationship.mentor_id$': mentor_id,
-                '$mentoring_relationship.mentee_id$': mentee_id,
-                solution_id: solution_id,
+                mentoring_relationship_id,
+                solution_id,
             }
         });
         if (observationInstance) {
@@ -111,8 +110,7 @@ const updateMenteeAttemptDetails = async (submssion_id, details) => {
     }
 }
 export const updateSubmissionandCompetency = async (req, res) => {
-    const { mentee_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
-    if (handleMissingParams(["mentee_id", "mentor_id", "solution_id"], req.body, res)) return;
+    const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
     //Call solution details API and get the result and update passbook accordingly
     try {
         await axios({
@@ -158,7 +156,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
 
 
     }
-    const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentee_id, mentee_id, solution_id, {
+    const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
         submission_status: 'submitted',
     })
     if (menteeObservationUpdationStatus) {
@@ -224,7 +222,7 @@ export const submitObservation = async (req, res) => {
         })
         logger.info(submitObservationDetails.data)
         if (submitObservationDetails) {
-            const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentor_id, mentee_id, solution_id, {
+            const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
                 attempted_count: Sequelize.literal('"attempted_count" + 1')
             })
             logger.info(menteeObservationUpdationStatus)
