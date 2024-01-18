@@ -196,6 +196,11 @@ export const menteeConsolidatedObservationAttempts = async (req, res) => {
     logger.info("Inside menteeConsolidatedObservationAttempts ")
     try {
         const { mentor_id, mentee_id } = req.query
+        MenteeSubmissionAttempts.hasOne(ObservationData, {
+            foreignKey: 'solution_id',
+            sourceKey: 'solution_id',
+            as: 'observationData',
+        });
         const menteeAttemptInstance = await MenteeSubmissionAttempts.findAll({
             where: {
                 mentor_id,
