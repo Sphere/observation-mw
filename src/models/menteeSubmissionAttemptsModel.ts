@@ -54,6 +54,9 @@ export const MenteeSubmissionAttempts = sequelize.define('mentee_submission_atte
     },
     acquired_score: {
         type: DataTypes.INTEGER,
+    },
+    observation_id: {
+        type: DataTypes.STRING(250),
     }
 
 });

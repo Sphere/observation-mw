@@ -83,11 +83,11 @@ const updateMenteeObservationDetails = async (mentoring_relationship_id, solutio
         return false
     }
 }
-const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission) => {
+const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission, observation_id) => {
     try {
         logger.info("Inside insertMenteeAttemptDetails")
-        logger.info(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission)
-        const attemptInstance = await MenteeSubmissionAttempts.create({ mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission });
+        logger.info(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission, observation_id)
+        const attemptInstance = await MenteeSubmissionAttempts.create({ mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission, observation_id });
         if (attemptInstance) {
             logger.info("Attempt insertion successfull for observation submission")
             return true
@@ -269,7 +269,10 @@ export const getObservationSubmissionResult = async (req, res) => {
 //Function to submit observation
 export const submitObservation = async (req, res) => {
     try {
-        const { mentee_id, mentor_id, solution_id, submission_id, attempted_count, mentoring_relationship_id, submission_data } = req.body;
+        let { mentee_id, mentor_id, solution_id, submission_id, attempted_count, mentoring_relationship_id, submission_data, observation_id } = req.body;
+        if (!observation_id) {
+            observation_id = "NA"
+        }
         if (handleMissingParams(["mentee_id", "mentor_id", "solution_id", "submission_id", "attempted_count", "mentoring_relationship_id", "submission_data"], req.body, res)) return;
         const submitObservationDetails = await axios({
             headers: observationServiceHeaders(req),
@@ -284,7 +287,7 @@ export const submitObservation = async (req, res) => {
                 attempted_count: Sequelize.literal('"attempted_count" + 1')
             })
             logger.info(menteeObservationUpdationStatus)
-            const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data)
+            const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data, observation_id)
             logger.info(insertionStatus)
 
             if (menteeObservationUpdationStatus && insertionStatus) {
