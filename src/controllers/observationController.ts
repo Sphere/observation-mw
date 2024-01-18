@@ -99,21 +99,35 @@ const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relati
 }
 const updateMenteeAttemptDetails = async (submission_id, details) => {
     logger.info("Inside updateMenteeAttemptDetails")
-    const menteeAttemptUpdate = await MenteeSubmissionAttempts.findOne({
-        where: {
-            submission_id: submission_id
+    // const menteeAttemptUpdate = await MenteeSubmissionAttempts.findOne({
+    //     where: {
+    //         submission_id: submission_id
+    //     }
+    // });
+    // console.log(submission_id)
+    // console.log(menteeAttemptUpdate)
+    // console.log(details)
+    const result = await MenteeSubmissionAttempts.update(
+        details,
+        {
+            where: {
+                submission_id: submission_id, // replace with the actual submission_id value
+            },
         }
-    });
-    console.log(submission_id)
-    console.log(menteeAttemptUpdate)
-    console.log(details)
-    if (menteeAttemptUpdate) {
-        await menteeAttemptUpdate.update(details)
-        logger.info("DB update successfull for observation submission")
+    );
+    if (result[0] > 0) {
+        console.log('Record updated successfully');
         return true
     } else {
-        return false
+        console.log('No records updated');
     }
+    // if (menteeAttemptUpdate) {
+    //     await menteeAttemptUpdate.update(details)
+    //     logger.info("DB update successfull for observation submission")
+    //     return true
+    // } else {
+    //     return false
+    // }
 }
 export const updateSubmissionandCompetency = async (req, res) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
