@@ -26,4 +26,4 @@ observationRoute.post(
     getObservationSubmissionResult
 );
 observationRoute.post("/updateSubmissionandCompetency", updateSubmissionandCompetency)
-observationRoute.post("/menteeConsolidatedObservationAttempts", menteeConsolidatedObservationAttempts)
+observationRoute.get("/menteeConsolidatedObservationAttempts", menteeConsolidatedObservationAttempts)
