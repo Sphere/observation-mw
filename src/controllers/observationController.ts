@@ -208,7 +208,7 @@ export const menteeConsolidatedObservationAttempts = async (req, res) => {
                 {
                     model: ObservationData,
                     as: 'observationDataAttempts',
-                    attributes: ['solution_id', 'solution_name', 'competency_data', 'attempted_count']
+                    attributes: ['solution_id', 'solution_name', 'competency_data']
                 },
             ],
         });
