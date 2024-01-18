@@ -174,6 +174,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
 
 }
 export const menteeConsolidatedObservationAttempts = async (req, res) => {
+    logger.info("Inside menteeConsolidatedObservationAttempts ")
     try {
         const { mentor_id, mentee_id } = req.query
         const menteeAttemptInstance = await MenteeSubmissionAttempts.findAll({
@@ -182,8 +183,10 @@ export const menteeConsolidatedObservationAttempts = async (req, res) => {
                 mentee_id
             }
         });
+        logger.info(menteeAttemptInstance)
         res.status(200).json(menteeAttemptInstance)
     } catch (error) {
+        console.log(error)
         res.status(400).json({
             "message": "Something went wrong while fetching observations"
         })
@@ -210,6 +213,7 @@ export const getObservationSubmissionResult = async (req, res) => {
             method: 'GET',
             url: `${API_ENDPOINTS.dbFind}`,
         })
+        logger.info(submissionResult)
         if (submissionResult) {
             const attemptResultUpdateDetails = {
                 result_percentage: submissionResult.data.result[0].pointsBasedPercentageScore,
