@@ -199,7 +199,6 @@ export const menteeConsolidatedObservationAttempts = async (req, res) => {
         MenteeSubmissionAttempts.hasOne(ObservationData, {
             foreignKey: 'solution_id',
             sourceKey: 'solution_id',
-            as: 'observationDataAttempts',
         });
         const menteeAttemptInstance = await MenteeSubmissionAttempts.findAll({
             where: {
