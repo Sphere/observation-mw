@@ -99,16 +99,16 @@ const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relati
 }
 const updateMenteeAttemptDetails = async (submission_id, details) => {
     logger.info("Inside updateMenteeAttemptDetails")
-    const menteeAttemptInstance = await MenteeSubmissionAttempts.findOne({
+    const menteeAttemptUpdate = await MenteeSubmissionAttempts.findOne({
         where: {
             submission_id: submission_id
         }
     });
     console.log(submission_id)
-    console.log(menteeAttemptInstance)
+    console.log(menteeAttemptUpdate)
     console.log(details)
-    if (menteeAttemptInstance) {
-        await menteeAttemptInstance.update(details)
+    if (menteeAttemptUpdate) {
+        await menteeAttemptUpdate.update(details)
         logger.info("DB update successfull for observation submission")
         return true
     } else {
