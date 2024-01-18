@@ -6,6 +6,7 @@ import { MentoringObservation } from "../models/mentoringObservationModel"
 import { MenteeSubmissionAttempts } from "../models/menteeSubmissionAttemptsModel"
 
 import { Sequelize } from "sequelize";
+import { ObservationData } from "models/observationMetaModel";
 
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
@@ -199,7 +200,12 @@ export const menteeConsolidatedObservationAttempts = async (req, res) => {
             where: {
                 mentor_id,
                 mentee_id
-            }
+            }, include: [
+                {
+                    model: ObservationData,
+                    attributes: ['solution_id', 'solution_name', 'competency_data', 'attempted_count']
+                },
+            ],
         });
         logger.info(menteeAttemptInstance)
         res.status(200).json(menteeAttemptInstance)

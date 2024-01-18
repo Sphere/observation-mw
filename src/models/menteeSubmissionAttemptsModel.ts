@@ -1,4 +1,5 @@
 import { Sequelize, DataTypes } from 'sequelize';
+import { ObservationData } from './observationMetaModel';
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE,
     host: process.env.POSTGRES_HOST,
@@ -55,5 +56,10 @@ export const MenteeSubmissionAttempts = sequelize.define('mentee_submission_atte
         type: DataTypes.INTEGER,
     }
 
+});
+MenteeSubmissionAttempts.hasOne(ObservationData, {
+    foreignKey: 'solution_id',
+    sourceKey: 'solution_id',
+    as: 'observationData',
 });
 module.exports = { MenteeSubmissionAttempts }
