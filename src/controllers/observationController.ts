@@ -62,22 +62,12 @@ const getEntitiesForMentor = async (req) => {
 const updateMenteeObservationDetails = async (mentor_id, mentee_id, solution_id, details) => {
     try {
         logger.info("Inside updateMenteeObservationDetails")
-        MentoringObservation.belongsTo(MentoringRelationship, {
-            foreignKey: 'mentoring_relationship_id',
-        });
         const observationInstance = await MentoringObservation.findOne({
             where: {
                 '$mentoring_relationship.mentor_id$': mentor_id,
                 '$mentoring_relationship.mentee_id$': mentee_id,
                 solution_id: solution_id,
-            },
-            include: [
-                {
-                    model: MentoringRelationship,
-                    as: 'mentoring_relationship',
-                    attributes: [],
-                },
-            ],
+            }
         });
         if (observationInstance) {
             await observationInstance.update(details)
