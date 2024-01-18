@@ -97,10 +97,10 @@ const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relati
         return false
     }
 }
-const updateMenteeAttemptDetails = async (submssion_id, details) => {
+const updateMenteeAttemptDetails = async (submission_id, details) => {
     const menteeAttemptInstance = await MenteeSubmissionAttempts.findOne({
         where: {
-            submssion_id
+            submission_id
         }
     });
     if (menteeAttemptInstance) {
@@ -170,6 +170,23 @@ export const updateSubmissionandCompetency = async (req, res) => {
         res.status(404).json({
             message: 'Something went wrong while updating passboook and submission status',
         });
+    }
+
+}
+export const menteeConsolidatedObservationAttempts = async (req, res) => {
+    try {
+        const { mentor_id, mentee_id } = req.query
+        const menteeAttemptInstance = await MenteeSubmissionAttempts.findAll({
+            where: {
+                mentor_id,
+                mentee_id
+            }
+        });
+        res.status(200).json(menteeAttemptInstance)
+    } catch (error) {
+        res.status(400).json({
+            "message": "Something went wrong while fetching observations"
+        })
     }
 
 }
