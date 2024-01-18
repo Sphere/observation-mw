@@ -6,7 +6,7 @@ import { MentoringObservation } from "../models/mentoringObservationModel"
 import { MenteeSubmissionAttempts } from "../models/menteeSubmissionAttemptsModel"
 
 import { Sequelize } from "sequelize";
-import { ObservationData } from "models/observationMetaModel";
+import { ObservationData } from "../models/observationMetaModel";
 
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,

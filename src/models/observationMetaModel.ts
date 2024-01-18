@@ -12,7 +12,7 @@ const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConn
     dialect: 'postgres'
 })
 // Define the ObservationData model
-const ObservationData = sequelize.define('observation_data', {
+export const ObservationData = sequelize.define('observation_data', {
     solution_id: {
         type: DataTypes.STRING(250),
         allowNull: false,
@@ -31,4 +31,4 @@ const ObservationData = sequelize.define('observation_data', {
     },
 });
 
-export { ObservationData }
+module.exports = { ObservationData }

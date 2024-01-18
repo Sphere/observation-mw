@@ -15,7 +15,7 @@ const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConn
     dialect: 'postgres'
 })
 // Define the MentoringObservation model
-const MentoringObservation = sequelize.define('mentoring_observations', {
+export const MentoringObservation = sequelize.define('mentoring_observations', {
     uuid_id: {
         type: DataTypes.STRING(250),
         primaryKey: true,
@@ -69,4 +69,4 @@ MentoringObservation.hasOne(ObservationData, {
 //     .catch((error) => {
 //         console.error('Error creating tables:', error);
 //     });
-export { MentoringObservation }
+module.exports = { MentoringObservation }
