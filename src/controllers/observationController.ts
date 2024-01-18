@@ -61,6 +61,7 @@ const getEntitiesForMentor = async (req) => {
 
 const updateMenteeObservationDetails = async (mentor_id, mentee_id, solution_id, details) => {
     try {
+        logger.info("Inside updateMenteeObservationDetails")
         MentoringObservation.belongsTo(MentoringRelationship, {
             foreignKey: 'mentoring_relationship_id',
         });
@@ -92,6 +93,7 @@ const updateMenteeObservationDetails = async (mentor_id, mentee_id, solution_id,
 }
 const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission) => {
     try {
+        logger.info("Inside insertMenteeAttemptDetails")
         const attemptInstance = await MenteeSubmissionAttempts.create({ mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission });
         if (attemptInstance) {
             logger.info("Attempt insertion successfull for observation submission")
@@ -230,13 +232,19 @@ export const submitObservation = async (req, res) => {
             data: submission_data,
             url: `${API_ENDPOINTS.submitObservation}/${submission_id}`
         })
+        logger.info(submitObservationDetails.data)
         if (submitObservationDetails) {
             const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentor_id, mentee_id, solution_id, {
                 attempted_count: Sequelize.literal('"attempted_count" + 1')
             })
+            logger.info(menteeObservationUpdationStatus)
             const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data)
+            logger.info(insertionStatus)
+
             if (menteeObservationUpdationStatus && insertionStatus) {
-                res.status(200).json({
+                logger.info("inside if")
+
+                return res.status(200).json({
                     "message": "SUCCESS",
                     "data": submitObservationDetails.data
                 })
