@@ -136,7 +136,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
     //Call solution details API and get the result and update passbook accordingly
     try {
-        await axios({
+        const passbookData = await axios({
             data: {
                 request: {
                     userId: mentee_id,
@@ -172,7 +172,8 @@ export const updateSubmissionandCompetency = async (req, res) => {
             method: 'PATCH',
             url: `${API_ENDPOINTS.passbookUpdate}`,
         })
-
+        logger.info("passbook data")
+        logger.info(passbookData)
     } catch (error) {
         logger.info("Something went wrong while passbook update")
         return res.status(500).json({ "type": "Failed", "error": "Something went wrong while passbook update" });
