@@ -76,7 +76,7 @@ const updateMenteeObservationDetails = async (mentoring_relationship_id, solutio
             return false
         }
     } catch (error) {
-        logger.info("Something went wrong while submission status update")
+        logger.info("Something went wrong while updating mentee observation details")
         return false
     }
 }
@@ -91,7 +91,7 @@ const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relati
             return false
         }
     } catch (error) {
-        logger.info("Something went wrong while submission status update")
+        logger.info("Something went wrong while inserting attempts")
         return false
     }
 }
@@ -220,6 +220,7 @@ export const submitObservation = async (req, res) => {
             data: submission_data,
             url: `${API_ENDPOINTS.submitObservation}/${submission_id}`
         })
+        logger.info("submit observation details")
         logger.info(submitObservationDetails.data)
         if (submitObservationDetails) {
             const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
