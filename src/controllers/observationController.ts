@@ -3,6 +3,8 @@ import { logger } from "../utils/logger";
 import { requestValidator } from "../utils/requestValidator"
 import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
+import { MenteeSubmissionAttempts } from "../models/menteeSubmissionAttemptsModel"
+
 import { Sequelize } from "sequelize";
 
 const API_ENDPOINTS = {
@@ -56,54 +58,70 @@ const getEntitiesForMentor = async (req) => {
     }
 
 }
-const updateAttemptedCount = async (mentor_id, mentee_id, solution_id) => {
-    MentoringObservation.belongsTo(MentoringRelationship, {
-        foreignKey: 'mentoring_relationship_id',
-    });
-    const observationInstance = await MentoringObservation.findOne({
-        where: {
-            '$mentoring_relationship.mentor_id$': mentor_id,
-            '$mentoring_relationship.mentee_id$': mentee_id,
-            solution_id: solution_id,
-        },
-        include: [
-            {
-                model: MentoringRelationship,
-                as: 'mentoring_relationship',
-                attributes: [],
-            },
-        ],
-    });
-    if (observationInstance) {
-        // Update the observation instance
-        await observationInstance.update({
-            attempted_count: Sequelize.literal('"attempted_count" + 1')
-        });
-        return true
 
+const updateMenteeObservationDetails = async (mentor_id, mentee_id, solution_id, details) => {
+    try {
+        MentoringObservation.belongsTo(MentoringRelationship, {
+            foreignKey: 'mentoring_relationship_id',
+        });
+        const observationInstance = await MentoringObservation.findOne({
+            where: {
+                '$mentoring_relationship.mentor_id$': mentor_id,
+                '$mentoring_relationship.mentee_id$': mentee_id,
+                solution_id: solution_id,
+            },
+            include: [
+                {
+                    model: MentoringRelationship,
+                    as: 'mentoring_relationship',
+                    attributes: [],
+                },
+            ],
+        });
+        if (observationInstance) {
+            await observationInstance.update(details)
+            logger.info("DB update successfull for observation submission")
+            return true
+        } else {
+            return false
+        }
+    } catch (error) {
+        logger.info("Something went wrong while submission status update")
+        return false
+    }
+}
+const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission) => {
+    try {
+        const attemptInstance = await MenteeSubmissionAttempts.create({ mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission });
+        if (attemptInstance) {
+            logger.info("Attempt insertion successfull for observation submission")
+            return true
+        } else {
+            return false
+        }
+    } catch (error) {
+        logger.info("Something went wrong while submission status update")
+        return false
+    }
+}
+const updateMenteeAttemptDetails = async (submssion_id, details) => {
+    const menteeAttemptInstance = await MenteeSubmissionAttempts.findOne({
+        where: {
+            submssion_id
+        }
+    });
+    if (menteeAttemptInstance) {
+        await menteeAttemptInstance.update(details)
+        logger.info("DB update successfull for observation submission")
+        return true
     } else {
-        return false;
+        return false
     }
 }
 export const updateSubmissionandCompetency = async (req, res) => {
-    const { mentee_id, mentor_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
-    if (!is_passbook_update_required) {
-        const updateAttempt = updateAttemptedCount(mentor_id, mentee_id, solution_id)
-        if (updateAttempt) {
-            return res.status(200).json({
-                "status": "SUCCESS",
-                "message": "Attempted count updated successfully"
-            })
-        }
-        else {
-            return res.status(400).json({
-                "status": "FAILED",
-                "message": "Something went wrong while updating count of attempts"
-            })
-        }
-
-    }
-    if (handleMissingParams(["mentee_id", "mentor_id", "competency_name", "competency_id", "competency_level_id", "solution_name", "solution_id", "is_passbook_update_required"], req.body, res)) return;
+    const { mentee_id, competency_name, competency_id, competency_level_id, solution_name, solution_id } = req.body;
+    if (handleMissingParams(["mentee_id", "mentor_id", "solution_id"], req.body, res)) return;
+    //Call solution details API and get the result and update passbook accordingly
     try {
         await axios({
             data: {
@@ -148,54 +166,29 @@ export const updateSubmissionandCompetency = async (req, res) => {
 
 
     }
-    try {
-        MentoringObservation.belongsTo(MentoringRelationship, {
-            foreignKey: 'mentoring_relationship_id',
+    const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentee_id, mentee_id, solution_id, {
+        submission_status: 'submitted',
+    })
+    if (menteeObservationUpdationStatus) {
+        res.status(200).json({
+            message: 'Submission status and Passbook updated successfully',
         });
-        const observationInstance = await MentoringObservation.findOne({
-            where: {
-                '$mentoring_relationship.mentor_id$': mentor_id,
-                '$mentoring_relationship.mentee_id$': mentee_id,
-                solution_id: solution_id,
-            },
-            include: [
-                {
-                    model: MentoringRelationship,
-                    as: 'mentoring_relationship',
-                    attributes: [],
-                },
-            ],
-        });
-        if (observationInstance) {
-            // Update the observation instance
-            await observationInstance.update({
-                submission_status: 'submitted',
-                attempted_count: Sequelize.literal('"attempted_count" + 1')
-            });
-            logger.info("DB update successfull for observation submission")
-
-        } else {
-            return res.status(400).json({
-                message: 'Observation not found',
-            });
-        }
-    } catch (error) {
-        logger.info("Something went wrong while submission status update")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while submission status update" });
-
     }
-    res.status(200).json({
-        message: 'Observation submission and passbook updated successfully',
-    });
+    else {
+        res.status(404).json({
+            message: 'Something went wrong while updating passboook and submission status',
+        });
+    }
+
 }
 //Function to get result of the submitted observations through DBFind API in ml-core service
 export const getObservationSubmissionResult = async (req, res) => {
     try {
-        const observation_filter_data = req.body;
+        const submission_id = req.body.submission_id;
         const submissionResult = await axios({
             data: {
                 "query": {
-                    "_id": observation_filter_data.query["_id"]
+                    "_id": submission_id
                 },
                 "mongoIdKeys": [
                     "_id"
@@ -208,6 +201,14 @@ export const getObservationSubmissionResult = async (req, res) => {
             method: 'GET',
             url: `${API_ENDPOINTS.dbFind}`,
         })
+        if (submissionResult) {
+            const attemptResultUpdateDetails = {
+                result_percentage: submissionResult.data.result[0].pointsBasedPercentageScore,
+                total_score: submissionResult.data.result[0].pointsBasedMaxScore,
+                acquired_score: submissionResult.data.result[0].pointsBasedScoreAchieved
+            }
+            await updateMenteeAttemptDetails(submission_id, attemptResultUpdateDetails)
+        }
         res.status(200).json({
             "message": "SUCCESS",
             "data": submissionResult.data
@@ -221,19 +222,31 @@ export const getObservationSubmissionResult = async (req, res) => {
 //Function to submit observation
 export const submitObservation = async (req, res) => {
     try {
-        const submission_id = req.query.submission_id;
-        if (handleMissingParams(["submission_id"], req.query, res)) return;
-        const submission_data = req.body;
+        const { mentee_id, mentor_id, solution_id, submission_id, attempted_count, mentoring_relationship_id, submission_data } = req.body;
+        if (handleMissingParams(["mentee_id", "mentor_id", "solution_id", "submission_id", "attempted_count", "mentoring_relationship_id", "submission_data"], req.body, res)) return;
         const submitObservationDetails = await axios({
             headers: observationServiceHeaders(req),
             method: 'POST',
             data: submission_data,
             url: `${API_ENDPOINTS.submitObservation}/${submission_id}`
         })
-        res.status(200).json({
-            "message": "SUCCESS",
-            "data": submitObservationDetails.data
-        })
+        if (submitObservationDetails) {
+            const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentor_id, mentee_id, solution_id, {
+                attempted_count: Sequelize.literal('"attempted_count" + 1')
+            })
+            const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data)
+            if (menteeObservationUpdationStatus && insertionStatus) {
+                res.status(200).json({
+                    "message": "SUCCESS",
+                    "data": submitObservationDetails.data
+                })
+            }
+            res.status(400).json({
+                "message": "SUCCESS",
+                "data": "Something went wrong while submitting observation"
+            })
+        }
+
     } catch (error) {
         logger.error(error, "Something went wrong while submitting observation")
         return res.status(500).json({ "type": "Failed", "error": "Something went wrong while submitting observation" });
