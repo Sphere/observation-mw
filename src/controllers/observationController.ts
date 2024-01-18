@@ -83,6 +83,7 @@ const updateMenteeObservationDetails = async (mentoring_relationship_id, solutio
 const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission) => {
     try {
         logger.info("Inside insertMenteeAttemptDetails")
+        logger.info(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission)
         const attemptInstance = await MenteeSubmissionAttempts.create({ mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission });
         if (attemptInstance) {
             logger.info("Attempt insertion successfull for observation submission")
@@ -91,6 +92,7 @@ const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relati
             return false
         }
     } catch (error) {
+        console.log(error)
         logger.info("Something went wrong while inserting attempts")
         return false
     }
