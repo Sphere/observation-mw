@@ -63,6 +63,7 @@ const getEntitiesForMentor = async (req) => {
 const updateMenteeObservationDetails = async (mentoring_relationship_id, solution_id, details) => {
     try {
         logger.info("Inside updateMenteeObservationDetails")
+        logger.info(details)
         const observationInstance = await MentoringObservation.findOne({
             where: {
                 mentoring_relationship_id,
@@ -77,6 +78,7 @@ const updateMenteeObservationDetails = async (mentoring_relationship_id, solutio
             return false
         }
     } catch (error) {
+        console.log(error)
         logger.info("Something went wrong while updating mentee observation details")
         return false
     }
