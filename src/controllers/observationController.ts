@@ -136,6 +136,9 @@ export const updateSubmissionandCompetency = async (req, res) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
     //Call solution details API and get the result and update passbook accordingly
     if (!is_passbook_update_required) {
+        await updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
+            otp_verification_status: '',
+        })
         return res.status(200).json({ "type": "Success", "error": "Attempt successful" });
 
     }
@@ -184,7 +187,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
 
 
     }
-    const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
+    const menteeObservationUpdationStatus = await updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
         submission_status: 'submitted',
     })
     if (menteeObservationUpdationStatus) {
