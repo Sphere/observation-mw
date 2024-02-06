@@ -117,6 +117,22 @@ const updateMenteeAttemptDetails = async (submission_id: string, details: any) =
         console.log('No records updated');
     }
 }
+export const getSolutionsList = async (req: any, res: any) => {
+    try {
+        const filters = req.body
+        logger.info(filters)
+        const solutionDetails = await ObservationData.findAll({
+            where: filters
+        });
+        logger.info(solutionDetails)
+        res.status(200).json(solutionDetails)
+    } catch (error) {
+        res.status(400).json(
+            { "type": "Failed", "error": "Something went wrong while fetching list of solutions" }
+        )
+    }
+
+}
 export const updateSubmissionandCompetency = async (req: any, res: any) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
     //Call solution details API and get the result and update passbook accordingly
