@@ -18,7 +18,7 @@ const API_ENDPOINTS = {
     "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`,
     "dbFind": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/admin/dbFind/observationSubmissions`
 }
-const observationServiceHeaders = (req) => {
+const observationServiceHeaders = (req: any) => {
     return {
         "accept": "application/json",
         "content-type": "application/json",
@@ -29,7 +29,7 @@ const observationServiceHeaders = (req) => {
 }
 
 // Function to handle missing parameters and return an appropriate response
-const handleMissingParams = (params, input, res) => {
+const handleMissingParams = (params: any, input: any, res: any) => {
     console.log(input)
     const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
@@ -42,7 +42,7 @@ const handleMissingParams = (params, input, res) => {
     return false;
 };
 //Function to get entity ID for the moentor
-const getEntitiesForMentor = async (req) => {
+const getEntitiesForMentor = async (req: any) => {
     try {
         const solution_id = req.body.solution_id;
         const entityData = await axios({
@@ -60,7 +60,7 @@ const getEntitiesForMentor = async (req) => {
 
 }
 
-const updateMenteeObservationDetails = async (mentoring_relationship_id, solution_id, details) => {
+const updateMenteeObservationDetails = async (mentoring_relationship_id: string, solution_id: string, details: any) => {
     try {
         logger.info("Inside updateMenteeObservationDetails")
         logger.info(details)
@@ -83,7 +83,7 @@ const updateMenteeObservationDetails = async (mentoring_relationship_id, solutio
         return false
     }
 }
-const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission, observation_id) => {
+const insertMenteeAttemptDetails = async (mentor_id: string, mentee_id: string, mentoring_relationship_id: string, solution_id: string, submission_id: string, attempt_serial_number: number, user_submission: any, observation_id: string) => {
     try {
         logger.info("Inside insertMenteeAttemptDetails")
         logger.info(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempt_serial_number, user_submission, observation_id)
@@ -100,16 +100,8 @@ const insertMenteeAttemptDetails = async (mentor_id, mentee_id, mentoring_relati
         return false
     }
 }
-const updateMenteeAttemptDetails = async (submission_id, details) => {
+const updateMenteeAttemptDetails = async (submission_id: string, details: any) => {
     logger.info("Inside updateMenteeAttemptDetails")
-    // const menteeAttemptUpdate = await MenteeSubmissionAttempts.findOne({
-    //     where: {
-    //         submission_id: submission_id
-    //     }
-    // });
-    // console.log(submission_id)
-    // console.log(menteeAttemptUpdate)
-    // console.log(details)
     const result = await MenteeSubmissionAttempts.update(
         details,
         {
@@ -124,15 +116,8 @@ const updateMenteeAttemptDetails = async (submission_id, details) => {
     } else {
         console.log('No records updated');
     }
-    // if (menteeAttemptUpdate) {
-    //     await menteeAttemptUpdate.update(details)
-    //     logger.info("DB update successfull for observation submission")
-    //     return true
-    // } else {
-    //     return false
-    // }
 }
-export const updateSubmissionandCompetency = async (req, res) => {
+export const updateSubmissionandCompetency = async (req: any, res: any) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
     //Call solution details API and get the result and update passbook accordingly
     if (!is_passbook_update_required) {
@@ -202,7 +187,7 @@ export const updateSubmissionandCompetency = async (req, res) => {
     }
 
 }
-export const menteeConsolidatedObservationAttempts = async (req, res) => {
+export const menteeConsolidatedObservationAttempts = async (req: any, res: any) => {
     logger.info("Inside menteeConsolidatedObservationAttempts ")
     try {
         const { mentor_id, mentee_id } = req.query
@@ -233,7 +218,7 @@ export const menteeConsolidatedObservationAttempts = async (req, res) => {
 
 }
 //Function to get result of the submitted observations through DBFind API in ml-core service
-export const getObservationSubmissionResult = async (req, res) => {
+export const getObservationSubmissionResult = async (req: any, res: any) => {
     try {
         const submission_id = req.body.submission_id;
         const submissionResult = await axios({
@@ -274,7 +259,7 @@ export const getObservationSubmissionResult = async (req, res) => {
 
 }
 //Function to submit observation
-export const submitObservation = async (req, res) => {
+export const submitObservation = async (req: any, res: any) => {
     try {
         let { mentee_id, mentor_id, solution_id, submission_id, attempted_count, mentoring_relationship_id, submission_data, observation_id } = req.body;
         if (!observation_id) {
@@ -297,7 +282,7 @@ export const submitObservation = async (req, res) => {
             const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data, observation_id)
             logger.info(insertionStatus)
 
-            if (menteeObservationUpdationStatus && insertionStatus) {
+            if (await menteeObservationUpdationStatus && await insertionStatus) {
                 logger.info("inside if")
 
                 return res.status(200).json({
@@ -318,7 +303,7 @@ export const submitObservation = async (req, res) => {
 
 }
 //End-points for verifying observation link
-export const verifyobservationLink = async (req, res) => {
+export const verifyobservationLink = async (req: any, res: any) => {
     try {
         logger.info("Inside verify observation link route");
         const observationLink = req.query.observationLink
@@ -339,7 +324,7 @@ export const verifyobservationLink = async (req, res) => {
 
 };
 //Function to add entities to the observation
-export const addEntityToObservation = async (req, res) => {
+export const addEntityToObservation = async (req: any, res: any) => {
     try {
         const { observation_id, mentee_id } = req.query;
         if (handleMissingParams(["observation_id", "mentee_id"], req.query, res)) return;
@@ -359,7 +344,7 @@ export const addEntityToObservation = async (req, res) => {
 
 }
 //Endpoints for getting observation details
-export const getobservationDetails = async (req, res) => {
+export const getobservationDetails = async (req: any, res: any) => {
     try {
         logger.info("Inside observation details route");
         const { observation_id, mentee_id, submission_number } = req.query
@@ -385,7 +370,7 @@ export const getobservationDetails = async (req, res) => {
 
 };
 
-export const observationOtpVerification = async (req, res) => {
+export const observationOtpVerification = async (req: any, res: any) => {
     logger.info("Observation verification OTP route");
     try {
         console.log(req.body)
@@ -429,6 +414,11 @@ export const observationOtpVerification = async (req, res) => {
             if (observationInstance) {
                 // Update the observation instance
                 const mentorEntityData = await getEntitiesForMentor(req);
+                if (!mentorEntityData) {
+                    return res.status(400).json({
+                        message: 'Mentee Not Found with the respective solution Id',
+                    });
+                }
                 const observation_id = mentorEntityData.data.result["_id"]
                 await observationInstance.update({
                     otp_verification_status: 'verified',

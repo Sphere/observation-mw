@@ -1,7 +1,7 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 import { ObservationData } from "../models/observationMetaModel";
-export const getObservationForMentee = async (req, res) => {
+export const getObservationForMentee = async (req: any, res: any) => {
   const { menteeId } = req.query;
   try {
     MentoringRelationship.hasMany(MentoringObservation, {
@@ -40,7 +40,7 @@ export const getObservationForMentee = async (req, res) => {
   }
 };
 
-export const getAllMenteeForMentor = async (req, res) => {
+export const getAllMenteeForMentor = async (req: any, res: any) => {
   const { mentorId } = req.query;
 
   try {
@@ -73,7 +73,7 @@ export const getAllMenteeForMentor = async (req, res) => {
     });
   }
 };
-export const getMentorMenteeDetailsFiltered = async (req, res) => {
+export const getMentorMenteeDetailsFiltered = async (req: any, res: any) => {
   try {
     const { menteeMentorDetails, filters } = req.body;
     const mentorMenteeFilters = Object.fromEntries(
@@ -108,7 +108,7 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
     });
   }
 }
-export const mentorObservationFilteredCount = async (req, res) => {
+export const mentorObservationFilteredCount = async (req: any, res: any) => {
   try {
     const { mentorId } = req.query;
     const filters = {
@@ -134,7 +134,6 @@ export const mentorObservationFilteredCount = async (req, res) => {
     for (const element of filterArray) {
 
       try {
-        console.log(element)
         MentoringRelationship.hasMany(MentoringObservation, {
           foreignKey: 'mentoring_relationship_id',
         });
@@ -144,7 +143,7 @@ export const mentorObservationFilteredCount = async (req, res) => {
             {
               model: MentoringObservation,
               attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
-              where: filters[element],
+              where: filters[element as keyof typeof filters],
               include: [{
                 model: ObservationData,
                 as: 'observationData',
@@ -158,7 +157,7 @@ export const mentorObservationFilteredCount = async (req, res) => {
           return (element as any).mentoring_observations;
         });
         const filteredDataLength = combinedMenteeData.flat().length;
-        filterCount[element] = filteredDataLength
+        filterCount[element as keyof typeof filters] = filteredDataLength
       } catch (error) {
         console.error('Error:', error);
         return res.status(500).json({

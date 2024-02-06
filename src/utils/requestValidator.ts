@@ -1,4 +1,4 @@
-export function requestValidator(requiredParams, requestBody) {
+export function requestValidator(requiredParams: any, requestBody: any) {
     const missingParams = [];
     for (const param of requiredParams) {
         if (!(param in requestBody)) {

@@ -13,7 +13,7 @@ const msg91AuthKey = process.env.MSG_91_AUTH_KEY
 const msg91TemplateId = process.env.MSG_91_TEMPLATE_ID
 const countryCode = "+91";
 // Function to handle missing parameters and return an appropriate response
-const handleMissingParams = (params, input, res) => {
+const handleMissingParams = (params: any, input: any, res: any) => {
     const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
@@ -25,7 +25,7 @@ const handleMissingParams = (params, input, res) => {
     return false;
 };
 // Endpoint for sending OTP
-export const sendOtp = async (req, res) => {
+export const sendOtp = async (req: any, res: any) => {
     const menteeId = req.query.menteeId;
     if (handleMissingParams(["menteeId"], req.query, res)) return;
     let phone = await userContactInfo(menteeId)
@@ -71,7 +71,7 @@ export const sendOtp = async (req, res) => {
     }
 }
 // Endpoint for verifying OTP
-export const verifyOtp = async (req, res) => {
+export const verifyOtp = async (req: any, res: any) => {
     const { otp, menteeId } = req.query;
     if (handleMissingParams(["otp", "menteeId"], req.query, res)) return;
     let phone = await userContactInfo(menteeId);
@@ -101,7 +101,7 @@ export const verifyOtp = async (req, res) => {
     }
 }
 // Endpoint for resending OTP
-export const resendOtp = async (req, res) => {
+export const resendOtp = async (req: any, res: any) => {
     logger.info("Inside resend OTP route")
     const { menteeId } = req.query;
     if (handleMissingParams(["menteeId"], req.query, res)) return;

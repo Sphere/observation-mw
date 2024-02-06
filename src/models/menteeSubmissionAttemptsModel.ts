@@ -1,11 +1,11 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import { ObservationData } from './observationMetaModel';
 const postgresConnectionDetails = {
-    database: process.env.POSTGRES_DATABASE,
-    host: process.env.POSTGRES_HOST,
-    password: process.env.POSTGRES_PASSWORD,
-    port: Number(process.env.POSTGRES_PORT),
-    user: process.env.POSTGRES_USER
+    database: process.env.POSTGRES_DATABASE || "observation_mw",
+    host: process.env.POSTGRES_HOST || "abcd",
+    password: process.env.POSTGRES_PASSWORD || "abcd",
+    port: Number(process.env.POSTGRES_PORT) || 1234,
+    user: process.env.POSTGRES_USER || "abcd"
 }
 const sequelize = new Sequelize(postgresConnectionDetails.database, postgresConnectionDetails.user, postgresConnectionDetails.password, {
     host: postgresConnectionDetails.host,

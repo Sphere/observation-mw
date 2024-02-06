@@ -5,7 +5,7 @@ import axios from "axios";
 const API_ENDPOINTS = {
     "userRead": `${process.env.HOST}api/user/v1/read`,
 }
-export let authCheck = async (req, res, next) => {
+export let authCheck = async (req: any, res: any, next: any) => {
     let authenticatedToken = req.headers["x-authenticated-user-token"];
     logger.info('Entered into auth check');
     if (!authenticatedToken) {
@@ -14,8 +14,8 @@ export let authCheck = async (req, res, next) => {
     try {
         const keycloak = new Keycloak({
             "realm": "sunbird",
-            "keycloak_base_url": process.env.KEYCLOAK_BASE_URL,
-            "client_id": process.env.CLIENT_ID,
+            "keycloak_base_url": process.env.KEYCLOAK_BASE_URL || "",
+            "client_id": process.env.CLIENT_ID || "",
             "is_legacy_endpoint": false
         })
         const token = await keycloak.jwt.verify(authenticatedToken)
@@ -33,7 +33,7 @@ export let authCheck = async (req, res, next) => {
 
     }
 }
-const userRoleCheck = async (userToken, userId) => {
+const userRoleCheck = async (userToken: any, userId: String) => {
     const userReadResponse = await axios({
         headers: {
             "accept": "application/json",

@@ -1,7 +1,7 @@
 import { logger } from "./logger";
 import axios from "axios";
 import cassandra from 'cassandra-driver';
-const cassandraPort = process.env.CASSANDRA_PORT;
+const cassandraPort = process.env.CASSANDRA_PORT || "1234";
 const client = new cassandra.Client({
     contactPoints: [cassandraPort],
     keyspace: 'sunbird',
@@ -9,7 +9,7 @@ const client = new cassandra.Client({
 })
 const userSearchRoute = `${process.env.LEARNER_SERVICE_API_BASE}/private/user/v1/search`
 const descryptionServiceRoute = `${process.env.DECRYPTION_API_BASE}/decrypt`
-export let userSearch = async (userAttributes) => {
+export let userSearch = async (userAttributes: any) => {
     return await axios({
         data: {
             request: {
@@ -21,7 +21,7 @@ export let userSearch = async (userAttributes) => {
         url: userSearchRoute
     });
 }
-export const userContactInfo = async (userId) => {
+export const userContactInfo = async (userId: string) => {
     logger.info("entered inside user contact info")
     const query = `SELECT * FROM user WHERE userId ='${userId}' ALLOW FILTERING`;
     const cassandraUserInfo = await client.execute(query)
