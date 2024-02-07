@@ -466,7 +466,7 @@ export const observationOtpVerification = async (req: any, res: any) => {
                 ],
             });
             if (observationInstance) {
-                // Update the observation instance
+                //Update the observation instance
                 const mentorEntityData = await getEntitiesForMentor(req);
                 if (!mentorEntityData) {
                     return res.status(400).json({
@@ -476,7 +476,9 @@ export const observationOtpVerification = async (req: any, res: any) => {
                 const observation_id = mentorEntityData.data.result["_id"]
                 await observationInstance.update({
                     otp_verification_status: 'verified',
-                    observation_id: observation_id
+                    observation_id: observation_id,
+                    otp_verified_on: new Date()
+
                 });
                 logger.info("DB update successfull for OTP verification")
                 return res.status(200).json({

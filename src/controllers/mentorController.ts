@@ -132,7 +132,6 @@ export const mentorObservationFilteredCount = async (req: any, res: any) => {
     }
     const filterArray = ["pending", "inProgress", "completed"]
     for (const element of filterArray) {
-
       try {
         MentoringRelationship.hasMany(MentoringObservation, {
           foreignKey: 'mentoring_relationship_id',
