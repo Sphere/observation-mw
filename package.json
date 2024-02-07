@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -p .",
     "dev": "ts-node-dev src/index.ts",
-    "start": "node dist/src/index.js",
+    "start": "node dist/index.js",
     "test": "mocha --require ts-node/register --project tsconfig.test.json 'test/**/*.ts'"
   },
   "author": "",
