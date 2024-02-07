@@ -133,6 +133,44 @@ export const getSolutionsList = async (req: any, res: any) => {
     }
 
 }
+export const getMentorAssignedSolutionsList = async (req: any, res: any) => {
+    const mentorId = req.query.mentorId;
+    MentoringRelationship.hasMany(MentoringObservation, {
+        foreignKey: 'mentoring_relationship_id',
+    });
+    MentoringObservation.hasMany(ObservationData, {
+        foreignKey: 'solution_id',
+    });
+    const solutionsData = await MentoringRelationship.findAll({
+        attributes: ['mentoring_relationship_id'],
+        include: [
+            {
+                model: MentoringObservation,
+                attributes: ['solution_id',],
+                include: [{
+                    model: ObservationData,
+                    as: 'observationData',
+                    attributes: ['solution_id', 'solution_name']
+                }]
+            },
+        ],
+        where: { mentor_id: mentorId },
+        subQuery: false,
+    });
+    const solutionIdNameMap: { [key: string]: string } = {};
+    solutionsData.forEach((item: any) => {
+        item.mentoring_observations?.forEach((obs: any) => {
+            const solutionId = obs.observationData?.solution_id;
+            const solutionName = obs.observationData?.solution_name;
+            if (solutionId && solutionName) {
+                solutionIdNameMap[solutionId] = solutionName;
+            }
+        });
+    });
+    res.status(200).json({ "message": "SUCCESS", solutionsList: solutionIdNameMap }
+    )
+
+}
 export const updateSubmissionandCompetency = async (req: any, res: any) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
     //Call solution details API and get the result and update passbook accordingly
@@ -219,7 +257,7 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
                 {
                     model: ObservationData,
                     as: 'observationAttemptsMetaData',
-                    attributes: ['solution_id', 'solution_name', 'competency_data']
+                    attributes: ['solution_id', 'solution_name', 'competency_data', 'duration']
                 },
             ],
         });

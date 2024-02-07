@@ -29,6 +29,10 @@ export const ObservationData = sequelize.define('observation_data', {
     competency_data: {
         type: DataTypes.ARRAY(DataTypes.JSONB),
     },
+    duration: {
+        type: DataTypes.NUMBER,
+    }
+
 });
 
 module.exports = { ObservationData }

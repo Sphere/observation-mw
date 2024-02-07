@@ -1,4 +1,4 @@
-import { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation, getObservationSubmissionResult, updateSubmissionandCompetency, menteeConsolidatedObservationAttempts } from "./../controllers/observationController"
+import { getobservationDetails, verifyobservationLink, observationOtpVerification, addEntityToObservation, submitObservation, getObservationSubmissionResult, updateSubmissionandCompetency, menteeConsolidatedObservationAttempts, getSolutionsList, getMentorAssignedSolutionsList } from "./../controllers/observationController"
 import { Router } from 'express'
 export const observationRoute = Router();
 observationRoute.post(
@@ -27,3 +27,5 @@ observationRoute.post(
 );
 observationRoute.post("/updateSubmissionandCompetency", updateSubmissionandCompetency)
 observationRoute.get("/menteeConsolidatedObservationAttempts", menteeConsolidatedObservationAttempts)
+observationRoute.get("/getSolutionsList", getSolutionsList)
+observationRoute.get("/getMentorAssignedSolutionsList", getMentorAssignedSolutionsList)

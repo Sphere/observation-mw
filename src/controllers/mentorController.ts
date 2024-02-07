@@ -15,11 +15,11 @@ export const getObservationForMentee = async (req: any, res: any) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
           }]
         },
 
@@ -52,11 +52,11 @@ export const getAllMenteeForMentor = async (req: any, res: any) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
           }]
         },
       ],
@@ -87,12 +87,12 @@ export const getMentorMenteeDetailsFiltered = async (req: any, res: any) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
           where: filters,
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
           }]
         },
       ],
@@ -142,12 +142,12 @@ export const mentorObservationFilteredCount = async (req: any, res: any) => {
           include: [
             {
               model: MentoringObservation,
-              attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+              attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
               where: filters[element as keyof typeof filters],
               include: [{
                 model: ObservationData,
                 as: 'observationData',
-                attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+                attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
               }]
             },
           ],

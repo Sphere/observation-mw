@@ -48,7 +48,14 @@ export const MentoringObservation = sequelize.define('mentoring_observations', {
     attempted_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
-    }
+    },
+    scheduled_on: {
+        type: DataTypes.DATE
+    },
+    otp_verified_on: {
+        type: DataTypes.DATE,
+        allowNull: false,
+    },
 });
 
 MentoringObservation.belongsTo(MentoringRelationship, {
