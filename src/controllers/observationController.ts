@@ -245,6 +245,7 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
     logger.info("Inside menteeConsolidatedObservationAttempts ")
     try {
         const { mentor_id, mentee_id } = req.query
+
         MenteeSubmissionAttempts.hasOne(ObservationData, {
             foreignKey: 'solution_id',
             sourceKey: 'solution_id',
@@ -274,15 +275,21 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
 export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any) => {
     logger.info("Inside menteeConsolidatedObservationAttempts v2")
     try {
-        const { mentor_id, mentee_id } = req.query
+        const { mentorId, menteeId } = req.query
+        if (!mentorId || !menteeId) {
+            return res.status(404).json({
+                "message": "Mentor or Mentee ID cannot be empty",
+
+            });
+        }
         MenteeSubmissionAttempts.hasOne(ObservationData, {
             foreignKey: 'solution_id',
             sourceKey: 'solution_id',
         });
         const menteeAttemptInstance: any = await MenteeSubmissionAttempts.findAll({
             where: {
-                mentor_id,
-                mentee_id
+                mentor_id: mentorId,
+                mentee_id: menteeId
             }, include: [
                 {
                     model: ObservationData,
@@ -300,10 +307,13 @@ export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any
                     solution_name: observation_name,
                 };
             }
-            grouped[key].items.push(item);
+            grouped[key].attempts.push(item);
             return grouped;
         }, {});
-        res.status(200).json(result);
+        res.status(200).json({
+            "message": "SUCCESS",
+            result
+        });
     } catch (error) {
         console.log(error)
         res.status(400).json({
