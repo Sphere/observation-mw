@@ -5,13 +5,14 @@ import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
 import { MenteeSubmissionAttempts } from "../models/menteeSubmissionAttemptsModel"
 
-import { Sequelize } from "sequelize";
+import { Sequelize } from 'sequelize';
 import { ObservationData } from "../models/observationMetaModel";
 
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
     "passbookUpdate": `${process.env.HOST}api/user/v1/passbook`,
     "verifyObservationLink": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/solutions/verifyLink`,
+    "getSolutionsList": `${process.env.HOST}api/observationmw/v1/observation/getSolutionsList`,
     "verifyOtp": `${process.env.HOST}api/observationmw/v1/otp/verifyOtp`,
     "getEntity": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/entities`,
     "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observationSubmissions/update`,
@@ -364,15 +365,30 @@ export const getObservationSubmissionResult = async (req: any, res: any) => {
 
 }
 //Function to submit observation
-const checkSubmissionEligibilty = async (mentee_id: string, mentor_id: string, solution_id: string) => {
-    const observationInstance = await MentoringObservation.findOne({
+const checkSubmissionEligibilty = async (solution_id: string, mentoring_relationship_id: string, req: any) => {
+    const observationInstance: any = await MentoringObservation.findOne({
         where: {
-            mentee_id,
-            mentor_id,
+            mentoring_relationship_id,
             solution_id,
         }
     });
-    console.log(observationInstance)
+    if (observationInstance) {
+        const otp_verified_on = observationInstance.otp_verified_on
+        const solutionsData = await axios({
+            data: {
+                "solution_id": solution_id
+            },
+            headers: observationServiceHeaders(req),
+            method: 'GET',
+            url: `${API_ENDPOINTS.getSolutionsList}`,
+        })
+        const duration = solutionsData.data[0].duration
+        const submissionTime = Date.now()
+        const differenceInSeconds = Math.floor((submissionTime - otp_verified_on.getTime()) / 1000);
+        if (differenceInSeconds < duration) {
+            return true
+        }
+    }
     return false
 }
 export const submitObservation = async (req: any, res: any) => {
@@ -381,8 +397,10 @@ export const submitObservation = async (req: any, res: any) => {
         if (!observation_id) {
             observation_id = "NA"
         }
-        if (!checkSubmissionEligibilty(mentee_id, mentor_id, solution_id)) {
-
+        if (!checkSubmissionEligibilty(solution_id, mentoring_relationship_id, req)) {
+            return res.status(404).json({
+                "message": "Mentee not allowed for submission"
+            })
         }
         if (handleMissingParams(["mentee_id", "mentor_id", "solution_id", "submission_id", "attempted_count", "mentoring_relationship_id", "submission_data"], req.body, res)) return;
         const submitObservationDetails = await axios({
@@ -488,7 +506,6 @@ export const getobservationDetails = async (req: any, res: any) => {
     }
 
 };
-
 export const observationOtpVerification = async (req: any, res: any) => {
     logger.info("Observation verification OTP route");
     try {

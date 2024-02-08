@@ -152,7 +152,7 @@ export const mentorObservationFilteredCount = async (req: any, res: any) => {
           ],
           where: { mentor_id: mentorId }, subQuery: false,
         })
-        const combinedMenteeData = menteeMentorObservationData.map((element) => {
+        const combinedMenteeData = menteeMentorObservationData.map((element: any) => {
           return (element as any).mentoring_observations;
         });
         const filteredDataLength = combinedMenteeData.flat().length;
