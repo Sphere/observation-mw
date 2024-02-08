@@ -60,54 +60,61 @@ export const scheduleObservation = async (req: any, res: any) => {
     }
 }
 export const getScheduledObservationList = async (req: any, res: any) => {
-    const mentorId = req.query.mentorId
-    MentoringRelationship.hasMany(MentoringObservation, {
-        foreignKey: 'mentoring_relationship_id',
-    });
-    const daysRange = 7;
-    const day = new Date();
-    const today = new Date(day.toISOString().split('T')[0] + 'T00:00:00.000Z');
-    const daysBefore = new Date(today);
-    daysBefore.setDate(today.getDate() - daysRange);
-    const daysAfter = new Date(today);
-    daysAfter.setDate(today.getDate() + daysRange);
-    const queryFilter: any = {
-        "sameDay": {
-            [Op.eq]: today
-        },
-        "overdue": {
-            [Op.between]: [daysBefore, today.setDate(today.getDate()) - 1],
-        },
-        "incoming": {
-            [Op.between]: [today.setDate(today.getDate()) + 1, daysAfter],
-        }
-    }
-    const scheduledSolutionsList: any = []
-    const filterArray = ["sameDay", "overdue", "upcoming"]
-    for (const element of filterArray) {
-        const menteeObservationData = await MentoringRelationship.findAll({
-            attributes: ['mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
-            include: [
-                {
-                    model: MentoringObservation,
-                    attributes: ['type', 'observation_id', 'solution_id', 'scheduled_on',],
-                    where: {
-                        scheduled_on: queryFilter[element],
-                    },
-                    include: [{
-                        model: ObservationData,
-                        as: 'observationData',
-                        attributes: ['solution_id', 'solution_name', 'competency_data']
-                    }]
-                },
-
-            ],
-            where: { mentor_id: mentorId },
-            subQuery: false,
+    try {
+        const mentorId = req.query.mentorId
+        MentoringRelationship.hasMany(MentoringObservation, {
+            foreignKey: 'mentoring_relationship_id',
         });
-        scheduledSolutionsList.push({ [element]: menteeObservationData })
+        const daysRange = 7;
+        const day = new Date();
+        const today = new Date(day.toISOString().split('T')[0] + 'T00:00:00.000Z');
+        const daysBefore = new Date(today);
+        daysBefore.setDate(today.getDate() - daysRange);
+        const daysAfter = new Date(today);
+        daysAfter.setDate(today.getDate() + daysRange);
+        const queryFilter: any = {
+            "sameDay": {
+                [Op.eq]: today
+            },
+            "overdue": {
+                [Op.between]: [daysBefore, today.setDate(today.getDate()) - 1],
+            },
+            "incoming": {
+                [Op.between]: [today.setDate(today.getDate()) + 1, daysAfter],
+            }
+        }
+        const scheduledSolutionsList: any = []
+        const filterArray = ["sameDay", "overdue", "upcoming"]
+        for (const element of filterArray) {
+            const menteeObservationData = await MentoringRelationship.findAll({
+                attributes: ['mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
+                include: [
+                    {
+                        model: MentoringObservation,
+                        attributes: ['type', 'observation_id', 'solution_id', 'scheduled_on',],
+                        where: {
+                            scheduled_on: queryFilter[element],
+                        },
+                        include: [{
+                            model: ObservationData,
+                            as: 'observationData',
+                            attributes: ['solution_id', 'solution_name', 'competency_data']
+                        }]
+                    },
+
+                ],
+                where: { mentor_id: mentorId },
+                subQuery: false,
+            });
+            scheduledSolutionsList.push({ [element]: menteeObservationData })
+        }
+
+        res.status(200).json(scheduledSolutionsList)
+    } catch (error) {
+        res.status(500).json({
+            message: "Something went wrong while fetching observations",
+        });
     }
 
-    res.status(200).json(scheduledSolutionsList)
 }
 module.exports = { scheduleObservation, getScheduledObservationList }

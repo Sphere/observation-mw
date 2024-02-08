@@ -271,6 +271,47 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
     }
 
 }
+export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any) => {
+    logger.info("Inside menteeConsolidatedObservationAttempts v2")
+    try {
+        const { mentor_id, mentee_id } = req.query
+        MenteeSubmissionAttempts.hasOne(ObservationData, {
+            foreignKey: 'solution_id',
+            sourceKey: 'solution_id',
+        });
+        const menteeAttemptInstance: any = await MenteeSubmissionAttempts.findAll({
+            where: {
+                mentor_id,
+                mentee_id
+            }, include: [
+                {
+                    model: ObservationData,
+                    as: 'observationAttemptsMetaData',
+                    attributes: ['solution_id', 'solution_name', 'competency_data', 'duration']
+                },
+            ],
+        });
+        const result = menteeAttemptInstance.reduce((grouped: any, item: any) => {
+            const key = item.solution_id;
+            const observation_name = item.observationAttemptsMetaData.solution_name;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    attempts: [],
+                    solution_name: observation_name,
+                };
+            }
+            grouped[key].items.push(item);
+            return grouped;
+        }, {});
+        res.status(200).json(result);
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            "message": "Something went wrong while fetching observations"
+        })
+    }
+
+}
 //Function to get result of the submitted observations through DBFind API in ml-core service
 export const getObservationSubmissionResult = async (req: any, res: any) => {
     try {
