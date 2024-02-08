@@ -62,6 +62,7 @@ export const scheduleObservation = async (req: any, res: any) => {
 export const getScheduledObservationList = async (req: any, res: any) => {
     try {
         const mentorId = req.query.mentorId
+        console.log(mentorId)
         MentoringRelationship.hasMany(MentoringObservation, {
             foreignKey: 'mentoring_relationship_id',
         });
@@ -79,7 +80,7 @@ export const getScheduledObservationList = async (req: any, res: any) => {
             "overdue": {
                 [Op.between]: [daysBefore, today.setDate(today.getDate()) - 1],
             },
-            "incoming": {
+            "upcoming": {
                 [Op.between]: [today.setDate(today.getDate()) + 1, daysAfter],
             }
         }
@@ -111,6 +112,7 @@ export const getScheduledObservationList = async (req: any, res: any) => {
 
         res.status(200).json(scheduledSolutionsList)
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             message: "Something went wrong while fetching observations",
         });

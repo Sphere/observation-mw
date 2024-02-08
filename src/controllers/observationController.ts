@@ -364,11 +364,25 @@ export const getObservationSubmissionResult = async (req: any, res: any) => {
 
 }
 //Function to submit observation
+const checkSubmissionEligibilty = async (mentee_id: string, mentor_id: string, solution_id: string) => {
+    const observationInstance = await MentoringObservation.findOne({
+        where: {
+            mentee_id,
+            mentor_id,
+            solution_id,
+        }
+    });
+    console.log(observationInstance)
+    return false
+}
 export const submitObservation = async (req: any, res: any) => {
     try {
         let { mentee_id, mentor_id, solution_id, submission_id, attempted_count, mentoring_relationship_id, submission_data, observation_id } = req.body;
         if (!observation_id) {
             observation_id = "NA"
+        }
+        if (!checkSubmissionEligibilty(mentee_id, mentor_id, solution_id)) {
+
         }
         if (handleMissingParams(["mentee_id", "mentor_id", "solution_id", "submission_id", "attempted_count", "mentoring_relationship_id", "submission_data"], req.body, res)) return;
         const submitObservationDetails = await axios({
