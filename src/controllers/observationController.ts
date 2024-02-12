@@ -276,31 +276,39 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
 export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any) => {
     logger.info("Inside menteeConsolidatedObservationAttempts v2")
     try {
-        const { mentorId, menteeId } = req.query
-        if (!mentorId || !menteeId) {
-            return res.status(404).json({
-                "message": "Mentor or Mentee ID cannot be empty",
-
-            });
+        const { mentorId = "", menteeId = "", solutionId = "", groupBy = "" } = req.query
+        const filters = {
+            "mentor_id": mentorId,
+            "mentee_id": menteeId,
+            "solution_id": solutionId
         }
+        if (groupBy == "mentee_id") {
+            delete filters.mentee_id
+        }
+        if (groupBy == "solution_id") {
+            delete filters.solution_id
+        }
+
         MenteeSubmissionAttempts.hasOne(ObservationData, {
             foreignKey: 'solution_id',
             sourceKey: 'solution_id',
         });
         const menteeAttemptInstance: any = await MenteeSubmissionAttempts.findAll({
-            where: {
-                mentor_id: mentorId,
-                mentee_id: menteeId
-            }, include: [
+            where: filters, include: [
                 {
                     model: ObservationData,
                     as: 'observationAttemptsMetaData',
                     attributes: ['solution_id', 'solution_name', 'competency_data', 'duration']
                 },
+                {
+                    model: MentoringRelationship,
+                    attributes: ["mentor_name", "mentee_name", "mentee_contact_info"],
+                    as: 'attemptsMentoringRelationshipMapping'
+                }
             ],
         });
         const result = menteeAttemptInstance.reduce((grouped: any, item: any) => {
-            const key = item.solution_id;
+            const key = item[groupBy];
             const observation_name = item.observationAttemptsMetaData.solution_name;
             if (!grouped[key]) {
                 grouped[key] = {

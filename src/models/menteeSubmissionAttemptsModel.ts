@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import { ObservationData } from './observationMetaModel';
+import { MentoringRelationship } from './mentoringRelationshipModel';
 const postgresConnectionDetails = {
     database: process.env.POSTGRES_DATABASE || "observation_mw",
     host: process.env.POSTGRES_HOST || "abcd",
@@ -64,5 +65,10 @@ MenteeSubmissionAttempts.hasOne(ObservationData, {
     foreignKey: 'solution_id',
     sourceKey: 'solution_id',
     as: 'observationAttemptsMetaData',
+});
+MenteeSubmissionAttempts.hasOne(MentoringRelationship, {
+    foreignKey: 'mentoring_relationship_id',
+    sourceKey: 'mentoring_relationship_id',
+    as: 'attemptsMentoringRelationshipMapping',
 });
 module.exports = { MenteeSubmissionAttempts }
