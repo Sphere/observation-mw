@@ -88,7 +88,7 @@ export const getScheduledObservationList = async (req: any, res: any) => {
         const filterArray = ["sameDay", "overdue", "upcoming"]
         for (const element of filterArray) {
             const menteeObservationData = await MentoringRelationship.findAll({
-                attributes: ['mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
+                attributes: ['mentoring_relationship_id', 'mentor_id', 'mentee_id', 'mentor_name', 'mentee_name', 'mentee_designation', 'mentee_contact_info'],
                 include: [
                     {
                         model: MentoringObservation,
