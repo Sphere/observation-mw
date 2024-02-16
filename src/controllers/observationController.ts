@@ -312,10 +312,13 @@ export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any
         const result = menteeAttemptInstance.reduce((grouped: any, item: any) => {
             const key = item[groupBy];
             const observation_name = item.observationAttemptsMetaData.solution_name;
+            const menteeMentorMeta = item.attemptsMentoringRelationshipMapping
+            console.log(item)
             if (!grouped[key]) {
                 grouped[key] = {
                     attempts: [],
                     solution_name: observation_name,
+                    mentorMenteeInfo: menteeMentorMeta
                 };
             }
             grouped[key].attempts.push(item);
