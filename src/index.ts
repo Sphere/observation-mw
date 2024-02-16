@@ -14,5 +14,5 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(authCheck);
 app.use("/v1", router);
 app.listen(process.env.APPLICATION_PORT, () => {
-  logger.info(`Sever listening on port ${process.env.APPLICATION_PORT}`);
+  logger.info(`Server listening on port ${process.env.APPLICATION_PORT}`);
 });

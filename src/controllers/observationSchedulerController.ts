@@ -62,7 +62,6 @@ export const scheduleObservation = async (req: any, res: any) => {
 export const getScheduledObservationList = async (req: any, res: any) => {
     try {
         const mentorId = req.query.mentorId
-        console.log(mentorId)
         MentoringRelationship.hasMany(MentoringObservation, {
             foreignKey: 'mentoring_relationship_id',
         });

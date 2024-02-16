@@ -4,9 +4,13 @@ import { requestValidator } from "../utils/requestValidator"
 import { MentoringRelationship } from "../models/mentoringRelationshipModel"
 import { MentoringObservation } from "../models/mentoringObservationModel"
 import { MenteeSubmissionAttempts } from "../models/menteeSubmissionAttemptsModel"
-
 import { Sequelize } from 'sequelize';
 import { ObservationData } from "../models/observationMetaModel";
+import { AddEntityToObservationRequestQuery, GetobservationDetailsRequestQuery, ObservationOtpVerificationRequestBody, SubmitObservationRequestBody, menteeConsolidatedObservationAttemptsV2QueryParams } from "../interfaces/observationControllerInterfaces";
+import { ApiResponse } from '../utils/apiResponse';
+import { Request, Response } from 'express';
+
+
 
 const API_ENDPOINTS = {
     "getObservationDetails": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/assessment`,
@@ -19,7 +23,7 @@ const API_ENDPOINTS = {
     "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`,
     "dbFind": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/admin/dbFind/observationSubmissions`
 }
-const observationServiceHeaders = (req: any) => {
+const observationServiceHeaders = (req: Request) => {
     return {
         "accept": "application/json",
         "content-type": "application/json",
@@ -30,11 +34,10 @@ const observationServiceHeaders = (req: any) => {
 }
 
 // Function to handle missing parameters and return an appropriate response
-const handleMissingParams = (params: any, input: any, res: any) => {
-    console.log(input)
+const handleMissingParams = (params: any, input: any, res: Response) => {
     const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
-        logger.info(missingParams, "Paramters missing")
+        logger.info(missingParams, "Parameters missing")
         return res.status(400).json({
             "type": "Failed",
             "error": `Missing parameters: ${missingParams.join(', ')}`
@@ -42,8 +45,8 @@ const handleMissingParams = (params: any, input: any, res: any) => {
     }
     return false;
 };
-//Function to get entity ID for the moentor
-const getEntitiesForMentor = async (req: any) => {
+//Function to get entity ID for the mentor
+const getEntitiesForMentor = async (req: Request) => {
     try {
         const solution_id = req.body.solution_id;
         const entityData = await axios({
@@ -118,7 +121,34 @@ const updateMenteeAttemptDetails = async (submission_id: string, details: any) =
         console.log('No records updated');
     }
 }
-export const getSolutionsList = async (req: any, res: any) => {
+//Function to submit observation
+const checkSubmissionEligibilty = async (solution_id: string, mentoring_relationship_id: string, req: Request) => {
+    const observationInstance: any = await MentoringObservation.findOne({
+        where: {
+            mentoring_relationship_id,
+            solution_id,
+        }
+    });
+    if (observationInstance) {
+        const otp_verified_on = observationInstance.otp_verified_on
+        const solutionsData = await axios({
+            data: {
+                "solution_id": solution_id
+            },
+            headers: observationServiceHeaders(req),
+            method: 'GET',
+            url: `${API_ENDPOINTS.getSolutionsList}`,
+        })
+        const duration = solutionsData.data[0].duration
+        const submissionTime = Date.now()
+        const differenceInSeconds = Math.floor((submissionTime - otp_verified_on.getTime()) / 1000);
+        if (differenceInSeconds < duration) {
+            return true
+        }
+    }
+    return false
+}
+export const getSolutionsList = async (req: Request, res: Response) => {
     try {
         const filters = req.body
         logger.info(filters)
@@ -134,7 +164,7 @@ export const getSolutionsList = async (req: any, res: any) => {
     }
 
 }
-export const getMentorAssignedSolutionsList = async (req: any, res: any) => {
+export const getMentorAssignedSolutionsList = async (req: Request, res: Response) => {
     const mentorId = req.query.mentorId;
     MentoringRelationship.hasMany(MentoringObservation, {
         foreignKey: 'mentoring_relationship_id',
@@ -172,7 +202,7 @@ export const getMentorAssignedSolutionsList = async (req: any, res: any) => {
     )
 
 }
-export const updateSubmissionandCompetency = async (req: any, res: any) => {
+export const updateSubmissionandCompetency = async (req: Request, res: Response) => {
     const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
     //Call solution details API and get the result and update passbook accordingly
     if (!is_passbook_update_required) {
@@ -242,7 +272,7 @@ export const updateSubmissionandCompetency = async (req: any, res: any) => {
     }
 
 }
-export const menteeConsolidatedObservationAttempts = async (req: any, res: any) => {
+export const menteeConsolidatedObservationAttempts = async (req: Request, res: Response) => {
     logger.info("Inside menteeConsolidatedObservationAttempts ")
     try {
         const { mentor_id, mentee_id } = req.query
@@ -273,19 +303,28 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
     }
 
 }
-export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any) => {
+//Function to get mentee submissionattempts grouped by solution Id or mentee Id  
+export const menteeConsolidatedObservationAttemptsV2 = async (req: Request & { mentorId?: string }, res: Response) => {
     logger.info("Inside menteeConsolidatedObservationAttempts v2")
     try {
-        const { mentorId = "", menteeId = "", solutionId = "", groupBy = "" } = req.query
-        const filters = {
-            "mentor_id": mentorId,
+        const { menteeId = "", solutionId = "", groupBy = "" }: menteeConsolidatedObservationAttemptsV2QueryParams = req.query
+        const filters: Record<string, string | undefined> = {
+            "mentor_id": req.mentorId,
             "mentee_id": menteeId,
             "solution_id": solutionId
         }
-        if (groupBy == "mentee_id") {
+        if (!filters.mentee_id && !filters.solution_id) {
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
+                message: "Mandatory Parameters MenteeId/SolutionId missing",
+            };
+            return res.status(400).json(apiResponse)
+        }
+        if (groupBy === "mentee_id") {
             delete filters.mentee_id
         }
-        if (groupBy == "solution_id") {
+        if (groupBy === "solution_id") {
             delete filters.solution_id
         }
 
@@ -307,7 +346,7 @@ export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any
                 }
             ],
         });
-        const result = menteeAttemptInstance.reduce((grouped: any, item: any) => {
+        const menteeAttemptsData = menteeAttemptInstance.reduce((grouped: any, item: any) => {
             const key = item[groupBy];
             const observation_name = item.observationAttemptsMetaData.solution_name;
             if (!grouped[key]) {
@@ -319,22 +358,35 @@ export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any
             grouped[key].attempts.push(item);
             return grouped;
         }, {});
-        res.status(200).json({
-            "message": "SUCCESS",
-            result
-        });
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'success',
+            data: menteeAttemptsData,
+        };
+        res.status(200).json(apiResponse);
     } catch (error) {
         console.log(error)
-        res.status(400).json({
-            "message": "Something went wrong while fetching observations"
-        })
+        const apiResponse: ApiResponse = {
+            timestamp: Date.now(),
+            status: 'error',
+            message: 'An error occurred while fetching mentee attempts.',
+        };
+        res.status(400).json(apiResponse)
     }
 
 }
 //Function to get result of the submitted observations through DBFind API in ml-core service
-export const getObservationSubmissionResult = async (req: any, res: any) => {
+export const getObservationSubmissionResult = async (req: Request, res: Response) => {
     try {
-        const submission_id = req.body.submission_id;
+        const submission_id: string = req.body.submission_id;
+        if (!submission_id) {
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
+                message: "Mandatory parameters Submission Id missing"
+            };
+            return res.status(500).json(apiResponse);
+        }
         const submissionResult = await axios({
             data: {
                 "query": {
@@ -352,8 +404,6 @@ export const getObservationSubmissionResult = async (req: any, res: any) => {
             url: `${API_ENDPOINTS.dbFind}`,
         })
         logger.info(submissionResult.data.result[0].pointsBasedPercentageScore)
-
-
         if (submissionResult) {
             const attemptResultUpdateDetails = {
                 result_percentage: Math.round(submissionResult.data.result[0].pointsBasedPercentageScore),
@@ -362,97 +412,91 @@ export const getObservationSubmissionResult = async (req: any, res: any) => {
             }
             await updateMenteeAttemptDetails(submission_id, attemptResultUpdateDetails)
         }
-        res.status(200).json({
-            "message": "SUCCESS",
-            "data": submissionResult.data
-        })
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'success',
+            data: submissionResult.data
+        };
+        res.status(200).json(apiResponse)
     } catch (error) {
         logger.error(error, "Something went wrong while getting observation result")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while getting observation result" });
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'error',
+            message: "Something went wrong while getting observation result"
+        };
+        return res.status(500).json(apiResponse);
     }
 
 }
 //Function to submit observation
-const checkSubmissionEligibilty = async (solution_id: string, mentoring_relationship_id: string, req: any) => {
-    const observationInstance: any = await MentoringObservation.findOne({
-        where: {
-            mentoring_relationship_id,
-            solution_id,
-        }
-    });
-    if (observationInstance) {
-        const otp_verified_on = observationInstance.otp_verified_on
-        const solutionsData = await axios({
-            data: {
-                "solution_id": solution_id
-            },
-            headers: observationServiceHeaders(req),
-            method: 'GET',
-            url: `${API_ENDPOINTS.getSolutionsList}`,
-        })
-        const duration = solutionsData.data[0].duration
-        const submissionTime = Date.now()
-        const differenceInSeconds = Math.floor((submissionTime - otp_verified_on.getTime()) / 1000);
-        if (differenceInSeconds < duration) {
-            return true
-        }
-    }
-    return false
-}
-export const submitObservation = async (req: any, res: any) => {
+export const submitObservation = async (req: Request & { mentorId?: string }, res: Response) => {
     try {
-        let { mentee_id, mentor_id, solution_id, submission_id, attempted_count, mentoring_relationship_id, submission_data, observation_id } = req.body;
-        if (!observation_id) {
-            observation_id = "NA"
-        }
+        let mentorId = req.mentorId || ""
+        let { mentee_id = "", solution_id = "", submission_id = "", attempted_count = 0, mentoring_relationship_id = "", submission_data, observation_id = "" }: SubmitObservationRequestBody = req.body;
+        if (handleMissingParams(["mentee_id", "solution_id", "submission_id", "attempted_count", "mentoring_relationship_id", "submission_data"], req.body, res)) return;
         if (!checkSubmissionEligibilty(solution_id, mentoring_relationship_id, req)) {
-            return res.status(404).json({
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
                 "message": "Mentee not allowed for submission"
-            })
+            };
+            return res.status(400).json(apiResponse)
         }
-        if (handleMissingParams(["mentee_id", "mentor_id", "solution_id", "submission_id", "attempted_count", "mentoring_relationship_id", "submission_data"], req.body, res)) return;
         const submitObservationDetails = await axios({
             headers: observationServiceHeaders(req),
             method: 'POST',
             data: submission_data,
             url: `${API_ENDPOINTS.submitObservation}/${submission_id}`
         })
-        logger.info("submit observation details")
-        logger.info(submitObservationDetails.data)
         if (submitObservationDetails) {
             const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
                 attempted_count: Sequelize.literal('"attempted_count" + 1')
             })
             logger.info(menteeObservationUpdationStatus)
-            const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data, observation_id)
+            const insertionStatus = insertMenteeAttemptDetails(mentorId, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data, observation_id)
             logger.info(insertionStatus)
 
             if (await menteeObservationUpdationStatus && await insertionStatus) {
-                logger.info("inside if")
-
-                return res.status(200).json({
-                    "message": "SUCCESS",
-                    "data": submitObservationDetails.data
-                })
+                const apiResponse: ApiResponse<string> = {
+                    timestamp: Date.now(),
+                    status: 'success',
+                    data: submitObservationDetails.data
+                };
+                return res.status(200).json(apiResponse)
             }
-            res.status(400).json({
-                "message": "SUCCESS",
-                "data": "Something went wrong while submitting observation"
-            })
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
+                "message": "Something went wrong while submitting observation"
+            };
+            res.status(400).json(apiResponse)
         }
 
     } catch (error) {
         logger.error(error, "Something went wrong while submitting observation")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while submitting observation" });
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'error',
+            "message": "Something went wrong while submitting observation"
+        };
+        return res.status(500).json(apiResponse);
     }
 
 }
 //End-points for verifying observation link
-export const verifyobservationLink = async (req: any, res: any) => {
+export const verifyobservationLink = async (req: Request, res: Response) => {
     try {
         logger.info("Inside verify observation link route");
         const observationLink = req.query.observationLink
-        if (handleMissingParams(["observationLink"], req.query, res)) return;
+        if (!observationLink) {
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
+                message: "Mandatory parameter Observation Link cannot be empty"
+            };
+            return res.status(400).json(apiResponse);
+        }
         const observationDetails = await axios({
             params: {
                 "createProject": "false"
@@ -461,17 +505,27 @@ export const verifyobservationLink = async (req: any, res: any) => {
             method: 'POST',
             url: `${API_ENDPOINTS.verifyObservationLink}/${observationLink}`,
         })
-        res.status(200).json(observationDetails.data)
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'success',
+            data: observationDetails.data
+        };
+        res.status(200).json(apiResponse)
     } catch (error) {
         logger.error(error, "Something went wrong while verifying observation link")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while verifying observation link" });
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'error',
+            message: "Something went wrong while verifying observation link"
+        };
+        return res.status(500).json(apiResponse);
     }
 
 };
 //Function to add entities to the observation
-export const addEntityToObservation = async (req: any, res: any) => {
+export const addEntityToObservation = async (req: Request, res: Response) => {
     try {
-        const { observation_id, mentee_id } = req.query;
+        const { observation_id, mentee_id }: AddEntityToObservationRequestQuery = req.query;
         if (handleMissingParams(["observation_id", "mentee_id"], req.query, res)) return;
         const addEntityDetails = await axios({
             headers: observationServiceHeaders(req),
@@ -481,18 +535,28 @@ export const addEntityToObservation = async (req: any, res: any) => {
             method: 'POST',
             url: `${API_ENDPOINTS.addEntityToObservation}/${observation_id}`,
         })
-        res.status(200).json(addEntityDetails.data)
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'success',
+            "data": addEntityDetails.data
+        };
+        res.status(200).json(apiResponse)
     } catch (error) {
         logger.error(error, "Something went wrong while adding entity to observation")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while adding entity to observation" });
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'error',
+            "message": "Something went wrong while adding entity to observation"
+        };
+        return res.status(500).json(apiResponse);
     }
 
 }
 //Endpoints for getting observation details
-export const getobservationDetails = async (req: any, res: any) => {
+export const getobservationDetails = async (req: Request & { mentorId?: string }, res: Response) => {
     try {
         logger.info("Inside observation details route");
-        const { observation_id, mentee_id, submission_number } = req.query
+        const { observation_id, mentee_id, submission_number }: GetobservationDetailsRequestQuery = req.query
         if (handleMissingParams(["observation_id", "mentee_id", "submission_number"], req.query, res)) return;
         const observationDetails = await axios({
             params: {
@@ -507,18 +571,27 @@ export const getobservationDetails = async (req: any, res: any) => {
             method: 'POST',
             url: `${API_ENDPOINTS.getObservationDetails}/${observation_id}`,
         })
-        res.status(200).json(observationDetails.data)
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'success',
+            "data": observationDetails.data
+        };
+        res.status(200).json(apiResponse)
     } catch (error) {
         logger.error(error, "Something went wrong while fetching observation questions")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while fetching observation questions" });
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'error',
+            "message": "Something went wrong while fetching observation questions"
+        };
+        return res.status(500).json(apiResponse);
     }
 
 };
-export const observationOtpVerification = async (req: any, res: any) => {
+export const observationOtpVerification = async (req: Request, res: Response) => {
     logger.info("Observation verification OTP route");
     try {
-        console.log(req.body)
-        const { otp, mentor_id, mentee_id, solution_id } = req.body;
+        const { otp, mentor_id, mentee_id, solution_id }: ObservationOtpVerificationRequestBody = req.body;
         if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req.body, res)) return;
         let otpVerified;
         try {
@@ -533,7 +606,12 @@ export const observationOtpVerification = async (req: any, res: any) => {
             })
         } catch (error) {
             logger.error(error, "MSG-91 API issue")
-            return res.status(500).json({ "type": "Failed", "error": "Unable to fulfill the verify OTP request due to a third-party API failure." });
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
+                "message": "Unable to fulfill the verify OTP request due to a third-party API failure."
+            };
+            return res.status(500).json(apiResponse);
         }
 
         if (otpVerified.data.type == "success") {
@@ -559,9 +637,12 @@ export const observationOtpVerification = async (req: any, res: any) => {
                 //Update the observation instance
                 const mentorEntityData = await getEntitiesForMentor(req);
                 if (!mentorEntityData) {
-                    return res.status(400).json({
-                        message: 'Mentee Not Found with the respective solution Id',
-                    });
+                    const apiResponse: ApiResponse<string> = {
+                        timestamp: Date.now(),
+                        status: 'error',
+                        "message": "Mentee Not Found with the respective solution Id"
+                    };
+                    return res.status(400).json(apiResponse);
                 }
                 const observation_id = mentorEntityData.data.result["_id"]
                 await observationInstance.update({
@@ -571,26 +652,36 @@ export const observationOtpVerification = async (req: any, res: any) => {
 
                 });
                 logger.info("DB update successfull for OTP verification")
-                return res.status(200).json({
-                    message: 'OTP verification completed successfully',
-                    observation_id: observation_id
-                });
+                const apiResponse: ApiResponse<string> = {
+                    timestamp: Date.now(),
+                    status: 'success',
+                    data: observation_id
+                };
+                return res.status(200).json(apiResponse);
             } else {
-                return res.status(400).json({
-                    message: 'Observation not found',
-                });
+                const apiResponse: ApiResponse<string> = {
+                    timestamp: Date.now(),
+                    status: 'error',
+                    "message": "Observation not found"
+                };
+                return res.status(400).json(apiResponse);
             }
         }
         else if (otpVerified.data.type == "error") {
-            res.status(400).json({
+            const apiResponse: ApiResponse<string> = {
+                timestamp: Date.now(),
+                status: 'error',
                 "message": "Mentee already verified for the given observation"
-            })
+            };
+            res.status(400).json(apiResponse)
         }
     } catch (error) {
-        console.log(error)
-        res.status(400).json({
+        const apiResponse: ApiResponse<string> = {
+            timestamp: Date.now(),
+            status: 'error',
             "message": "Error occurred while observation verification"
-        })
+        };
+        res.status(500).json(apiResponse)
     }
 
 }
