@@ -61,8 +61,18 @@ export const scheduleObservation = async (req: any, res: any) => {
 }
 export const getScheduledObservationList = async (req: any, res: any) => {
     try {
-        const mentorId = req.query.mentorId
-        console.log(mentorId)
+        const mentorId = req.query.mentorId || "";
+        const menteeId = req.query.menteeId || "";
+        const filters = {
+            "mentor_id": mentorId,
+            "mentee_id": menteeId,
+        }
+        if (!filters.mentor_id) {
+            delete filters.mentor_id
+        }
+        if (!filters.mentee_id) {
+            delete filters.mentee_id
+        }
         MentoringRelationship.hasMany(MentoringObservation, {
             foreignKey: 'mentoring_relationship_id',
         });
@@ -104,7 +114,7 @@ export const getScheduledObservationList = async (req: any, res: any) => {
                     },
 
                 ],
-                where: { mentor_id: mentorId },
+                where: filters,
                 subQuery: false,
             });
             scheduledSolutionsList.push({ [element]: menteeObservationData })

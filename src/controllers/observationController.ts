@@ -288,7 +288,9 @@ export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any
         if (groupBy == "solution_id") {
             delete filters.solution_id
         }
-
+        if (!filters.mentor_id) {
+            delete filters.mentor_id
+        }
         MenteeSubmissionAttempts.hasOne(ObservationData, {
             foreignKey: 'solution_id',
             sourceKey: 'solution_id',
