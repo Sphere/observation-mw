@@ -102,14 +102,14 @@ export const getScheduledObservationList = async (req: any, res: any) => {
                 include: [
                     {
                         model: MentoringObservation,
-                        attributes: ['type', 'observation_id', 'solution_id', 'scheduled_on',],
+                        attributes: ['type', 'observation_id', 'solution_id', 'scheduled_on', 'attempted_count',],
                         where: {
                             scheduled_on: queryFilter[element],
                         },
                         include: [{
                             model: ObservationData,
                             as: 'observationData',
-                            attributes: ['solution_id', 'solution_name', 'competency_data']
+                            attributes: ['solution_id', 'solution_name', 'competency_data', 'duration']
                         }]
                     },
 
