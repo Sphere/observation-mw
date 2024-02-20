@@ -22,9 +22,9 @@ export let authCheck = async (req: any, res: any, next: any) => {
         const decodedTokenArray = token.content.sub.split(":")
         const userId = decodedTokenArray[decodedTokenArray.length - 1]
         const userRoles = await userRoleCheck(authenticatedToken, userId);
-        if (!userRoles.includes("OBS_MENTOR")) {
-            return res.status(401).json({ error: 'Invalid user role: Expected OBS_MENTOR role' });
-        }
+        // if (!userRoles.includes("OBS_MENTOR")) {
+        //     return res.status(401).json({ error: 'Invalid user role: Expected OBS_MENTOR role' });
+        // }
         req.mentorId = userId
         next();
     } catch (error) {
