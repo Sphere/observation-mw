@@ -83,17 +83,28 @@ export const getScheduledObservationList = async (req: any, res: any) => {
         daysBefore.setDate(today.getDate() - daysRange);
         const daysAfter = new Date(today);
         daysAfter.setDate(today.getDate() + daysRange);
+        // const queryFilter: any = {
+        //     "sameDay": {
+        //         [Op.between]: [today, today.setDate(today.getDate()) + 1]
+        //     },
+        //     "overdue": {
+        //         [Op.between]: [daysBefore, today.setDate(today.getDate()) - 1],
+        //     },
+        //     "upcoming": {
+        //         [Op.between]: [today.setDate(today.getDate()) + 1, daysAfter],
+        //     }
+        // }
         const queryFilter: any = {
             "sameDay": {
-                [Op.between]: [today, today.setDate(today.getDate()) + 1]
+                [Op.between]: [today, new Date(today.getTime() + 24 * 60 * 60 * 1000)]
             },
             "overdue": {
-                [Op.between]: [daysBefore, today.setDate(today.getDate()) - 1],
+                [Op.between]: [daysBefore, new Date(today.getTime() - 24 * 60 * 60 * 1000)]
             },
             "upcoming": {
-                [Op.between]: [today.setDate(today.getDate()) + 1, daysAfter],
+                [Op.between]: [new Date(today.getTime() + 24 * 60 * 60 * 1000), daysAfter]
             }
-        }
+        };
         const scheduledSolutionsList: any = []
         const filterArray = ["sameDay", "overdue", "upcoming"]
         for (const element of filterArray) {
