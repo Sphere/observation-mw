@@ -85,7 +85,7 @@ export const getScheduledObservationList = async (req: any, res: any) => {
         daysAfter.setDate(today.getDate() + daysRange);
         const queryFilter: any = {
             "sameDay": {
-                [Op.eq]: today
+                [Op.between]: [today, today.setDate(today.getDate()) + 1]
             },
             "overdue": {
                 [Op.between]: [daysBefore, today.setDate(today.getDate()) - 1],
