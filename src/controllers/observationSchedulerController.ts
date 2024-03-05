@@ -38,7 +38,8 @@ export const scheduleObservation = async (req: any, res: any) => {
             if (observationInstance) {
                 //Update the observation instance
                 await observationInstance.update({
-                    scheduled_on: element.scheduledOn
+                    scheduled_on: element.scheduledOn,
+                    submission_status: ""
                 });
                 element.status = "SUCCESSFUL"
                 scheduleStatus.push(element)
@@ -116,6 +117,7 @@ export const getScheduledObservationList = async (req: any, res: any) => {
                         attributes: ['type', 'observation_id', 'solution_id', 'scheduled_on', 'attempted_count',],
                         where: {
                             scheduled_on: queryFilter[element],
+                            submission_status: ""
                         },
                         include: [{
                             model: ObservationData,

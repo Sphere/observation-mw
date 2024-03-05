@@ -313,7 +313,6 @@ export const menteeConsolidatedObservationAttemptsV2 = async (req: any, res: any
             const key = item[groupBy];
             const observation_name = item.observationAttemptsMetaData.solution_name;
             const menteeMentorMeta = item.attemptsMentoringRelationshipMapping
-            console.log(item)
             if (!grouped[key]) {
                 grouped[key] = {
                     attempts: [],
@@ -426,7 +425,9 @@ export const submitObservation = async (req: any, res: any) => {
         logger.info(submitObservationDetails.data)
         if (submitObservationDetails) {
             const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
-                attempted_count: Sequelize.literal('"attempted_count" + 1')
+                attempted_count: Sequelize.literal('"attempted_count" + 1'),
+                submission_status: "submitted"
+
             })
             logger.info(menteeObservationUpdationStatus)
             const insertionStatus = insertMenteeAttemptDetails(mentor_id, mentee_id, mentoring_relationship_id, solution_id, submission_id, attempted_count, submission_data, observation_id)
