@@ -426,7 +426,8 @@ export const submitObservation = async (req: any, res: any) => {
         if (submitObservationDetails) {
             const menteeObservationUpdationStatus = updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
                 attempted_count: Sequelize.literal('"attempted_count" + 1'),
-                submission_status: "submitted"
+                submission_status: "submitted",
+                scheduled_on: null
 
             })
             logger.info(menteeObservationUpdationStatus)
