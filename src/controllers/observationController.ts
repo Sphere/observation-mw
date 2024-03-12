@@ -590,7 +590,7 @@ export const observationOtpVerification = async (req: any, res: any) => {
         }
         else if (otpVerified.data.type == "error") {
             res.status(400).json({
-                "message": "Mentee already verified for the given observation"
+                "message": "Please provide correct otp and try again"
             })
         }
     } catch (error) {
