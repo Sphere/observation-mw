@@ -28,7 +28,6 @@ export let authCheck = async (req: any, res: any, next: any) => {
         req.mentorId = userId
         next();
     } catch (error) {
-        console.log(error)
         return res.status(401).json({ error: 'Unauthorized - Invalid token' });
 
     }

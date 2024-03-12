@@ -135,7 +135,6 @@ export const getScheduledObservationList = async (req: any, res: any) => {
 
         res.status(200).json(scheduledSolutionsList)
     } catch (error) {
-        console.log(error)
         res.status(500).json({
             message: "Something went wrong while fetching observations",
         });

@@ -18,6 +18,7 @@ const API_ENDPOINTS = {
     "submitObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observationSubmissions/update`,
     "addEntityToObservation": `${process.env.ML_SURVEY_SERVICE_API_BASE}/v1/observations/updateEntities`,
     "dbFind": `${process.env.ML_CORE_SERVICE_API_BASE}/v1/admin/dbFind/observationSubmissions`
+
 }
 const observationServiceHeaders = (req: any) => {
     return {
@@ -31,7 +32,6 @@ const observationServiceHeaders = (req: any) => {
 
 // Function to handle missing parameters and return an appropriate response
 const handleMissingParams = (params: any, input: any, res: any) => {
-    console.log(input)
     const missingParams = requestValidator(params, input);
     if (missingParams.length > 0) {
         logger.info(missingParams, "Paramters missing")
@@ -79,7 +79,6 @@ const updateMenteeObservationDetails = async (mentoring_relationship_id: string,
             return false
         }
     } catch (error) {
-        console.log(error)
         logger.info("Something went wrong while updating mentee observation details")
         return false
     }
@@ -96,7 +95,6 @@ const insertMenteeAttemptDetails = async (mentor_id: string, mentee_id: string, 
             return false
         }
     } catch (error) {
-        console.log(error)
         logger.info("Something went wrong while inserting attempts")
         return false
     }
@@ -112,7 +110,6 @@ const updateMenteeAttemptDetails = async (submission_id: string, details: any) =
         }
     );
     if (result[0] > 0) {
-        console.log('Record updated successfully');
         return true
     } else {
         console.log('No records updated');
@@ -173,74 +170,80 @@ export const getMentorAssignedSolutionsList = async (req: any, res: any) => {
 
 }
 export const updateSubmissionandCompetency = async (req: any, res: any) => {
-    const { mentee_id, mentoring_relationship_id, competency_name, competency_id, competency_level_id, solution_name, solution_id, is_passbook_update_required } = req.body;
-    //Call solution details API and get the result and update passbook accordingly
-    if (!is_passbook_update_required) {
-        await updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
-            otp_verification_status: '',
-        })
-        return res.status(200).json({ "type": "Success", "error": "Attempt successful" });
-
-    }
     try {
-        const passbookData = await axios({
+        const { mentee_id, solution_id } = req.body;
+        //Call solution details API and get the result and update passbook accordingly
+        const solutionCompetencyDetails = await axios({
             data: {
-                request: {
-                    userId: mentee_id,
-                    typeName: 'competency',
-                    competencyDetails: [
-                        {
-                            competencyId: competency_id.toString(),
-                            additionalParams: {
-                                competencyName: competency_name
-                            },
-                            acquiredDetails: {
-                                acquiredChannel: 'admin',
-                                competencyLevelId: competency_level_id,
-                                additionalParams: {
-                                    competencyName: competency_name,
-                                    courseName: "Obs-" + solution_name,
-                                    courseId: solution_id,
-                                    solutionName: solution_name,
-                                    solutionId: solution_id
-                                },
-                            },
-                        },
-                    ],
-                }
+                solution_id
             },
             headers: {
                 "accept": "application/json",
                 "content-type": "application/json",
                 "Authorization": process.env.SB_API_KEY,
                 "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
-                "x-authenticated-userid": mentee_id
             },
-            method: 'PATCH',
-            url: `${API_ENDPOINTS.passbookUpdate}`,
+            method: 'GET',
+            url: `${API_ENDPOINTS.getSolutionsList}`,
         })
-        logger.info("passbook data")
-        logger.info(passbookData)
-    } catch (error) {
-        logger.info("Something went wrong while passbook update")
-        return res.status(500).json({ "type": "Failed", "error": "Something went wrong while passbook update" });
-
-
-    }
-    const menteeObservationUpdationStatus = await updateMenteeObservationDetails(mentoring_relationship_id, solution_id, {
-        submission_status: 'submitted',
-    })
-    if (menteeObservationUpdationStatus) {
+        const competencyDetails = solutionCompetencyDetails.data[0].competency_data
+        const solutionName = solutionCompetencyDetails.data[0]["solution_name"]
+        const solutionId = solutionCompetencyDetails.data[0]["solution_id"]
+        for (const competency of competencyDetails) {
+            let competencyName = Object.keys(competency)[0]
+            let competencyLevelData = Object.values(competency).toString()
+            let competencyId = competencyLevelData.substring(0, competencyLevelData.indexOf("-"))
+            let competencyLevelId = competencyLevelData.substring(competencyLevelData.indexOf("-") + 1, competencyLevelData.length)
+            try {
+                const passbookData = await axios({
+                    data: {
+                        request: {
+                            userId: mentee_id,
+                            typeName: 'competency',
+                            competencyDetails: [
+                                {
+                                    competencyId: competencyId.toString(),
+                                    additionalParams: {
+                                        competencyName: competencyName.toString()
+                                    },
+                                    acquiredDetails: {
+                                        acquiredChannel: 'admin',
+                                        competencyLevelId: competencyLevelId,
+                                        additionalParams: {
+                                            competencyName: competencyName,
+                                            courseName: "Obs-" + solutionName,
+                                            courseId: solutionId,
+                                            solutionName: solutionName,
+                                            solutionId: solutionId
+                                        },
+                                    },
+                                },
+                            ],
+                        }
+                    },
+                    headers: {
+                        "accept": "application/json",
+                        "content-type": "application/json",
+                        "Authorization": process.env.SB_API_KEY,
+                        "X-authenticated-user-token": req.headers["x-authenticated-user-token"],
+                        "x-authenticated-userid": mentee_id
+                    },
+                    method: 'PATCH',
+                    url: `${API_ENDPOINTS.passbookUpdate}`,
+                })
+                logger.info("passbook data")
+                logger.info(passbookData)
+            } catch (error) {
+                logger.info("Something went wrong while passbook update")
+                return res.status(500).json({ "type": "Failed", "error": "Something went wrong while passbook update" });
+            }
+        }
         res.status(200).json({
-            message: 'Submission status and Passbook updated successfully',
+            message: 'Passbook updated successfully',
         });
+    } catch (error) {
+        res.status(500).json({ "type": "Failed", "error": "Something went wrong while passbook update" });
     }
-    else {
-        res.status(404).json({
-            message: 'Something went wrong while updating passboook and submission status',
-        });
-    }
-
 }
 export const menteeConsolidatedObservationAttempts = async (req: any, res: any) => {
     logger.info("Inside menteeConsolidatedObservationAttempts ")
@@ -266,7 +269,6 @@ export const menteeConsolidatedObservationAttempts = async (req: any, res: any) 
         logger.info(menteeAttemptInstance)
         res.status(200).json(menteeAttemptInstance)
     } catch (error) {
-        console.log(error)
         res.status(400).json({
             "message": "Something went wrong while fetching observations"
         })
@@ -524,7 +526,6 @@ export const getobservationDetails = async (req: any, res: any) => {
 export const observationOtpVerification = async (req: any, res: any) => {
     logger.info("Observation verification OTP route");
     try {
-        console.log(req.body)
         const { otp, mentor_id, mentee_id, solution_id } = req.body;
         if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req.body, res)) return;
         let otpVerified;
@@ -594,7 +595,6 @@ export const observationOtpVerification = async (req: any, res: any) => {
             })
         }
     } catch (error) {
-        console.log(error)
         res.status(400).json({
             "message": "Error occurred while observation verification"
         })
