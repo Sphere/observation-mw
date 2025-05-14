@@ -95,8 +95,8 @@ export const verifyOtp = async (req: any, res: any) => {
         res.status(200).json(verifyOtpResponse.data)
         logger.info(verifyOtpResponse.data)
     } catch (error) {
-        logger.error(error, "Something went wrong while sending OTP")
-        return res.status(500).json({ "type": "Failed", "error": "Internal Server Error" });
+        logger.error(error, "Something went wrong while verifying OTP")
+        return res.status(500).json({ "type": "Failed", "error": "Phone OTP Validation Failed Try again" });
 
     }
 }
