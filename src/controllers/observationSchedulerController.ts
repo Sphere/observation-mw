@@ -26,6 +26,7 @@ export const scheduleObservation = async (req: any, res: any) => {
                     '$mentoring_relationship.mentor_id$': element.mentorId,
                     '$mentoring_relationship.mentee_id$': element.menteeId,
                     solution_id: element.solutionId,
+                    status:"active"
                 },
                 include: [
                     {
