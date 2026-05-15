@@ -525,9 +525,24 @@ export const getobservationDetails = async (req: any, res: any) => {
     }
 
 };
+/**
+ * @route   POST /v1/observation/observationOtpVerification
+ * @desc    V1: Verifies OTP via MSG-91, then fetches observation_id from ML Service and updates DB.
+ *          V2: When body contains type="observer", skips OTP and delegates to initializeObservationForObserver.
+ * @body    V1: { otp: string, mentor_id: string, mentee_id: string, solution_id: string }
+ *          V2: { mentee_id: string, solution_id: string, type: "observer" }
+ * @returns { message: string, observation_id: string }
+ */
 export const observationOtpVerification = async (req: any, res: any) => {
     logger.info("Observation verification OTP route");
     try {
+        // V2 Observer: type=observer skips OTP, delegates to observer init
+        // V1 unaffected — only triggers when type is explicitly "observer"
+        if (req.body.type === "observer") {
+            logger.info("[V2-Observer] type=observer detected, delegating to initializeObservationForObserver");
+            return initializeObservationForObserver(req, res);
+        }
+
         const { otp, mentor_id, mentee_id, solution_id } = req.body;
         if (handleMissingParams(["otp", "mentor_id", "mentee_id", "solution_id"], req.body, res)) return;
         let otpVerified;
@@ -604,5 +619,89 @@ export const observationOtpVerification = async (req: any, res: any) => {
 
 }
 
+/**
+ * @route   POST /v1/observation/initializeObservationForObserver
+ * @desc    V2 Observer - Initialize observation without OTP verification.
+ *          Replicates the V1 OTP flow (getEntitiesForMentor + addEntity + DB update)
+ *          but skips OTP. Used when mentor_id === mentee_id (self-observer).
+ * @body    { mentee_id: string, solution_id: string }
+ * @returns { message: string, observation_id: string }
+ */
+export const initializeObservationForObserver = async (req: any, res: any) => {
+    try {
+        const { mentee_id, solution_id } = req.body;
+        if (handleMissingParams(["mentee_id", "solution_id"], req.body, res)) return;
 
+        logger.info(`[V2-Observer] Init started | mentee_id=${mentee_id} solution_id=${solution_id}`);
 
+        MentoringObservation.belongsTo(MentoringRelationship, {
+            foreignKey: 'mentoring_relationship_id',
+        });
+        const observationInstance = await MentoringObservation.findOne({
+            where: {
+                '$mentoring_relationship.mentee_id$': mentee_id,
+                solution_id: solution_id,
+                type: "observer"
+            },
+            include: [
+                {
+                    model: MentoringRelationship,
+                    as: 'mentoring_relationship',
+                    attributes: [],
+                },
+            ],
+        });
+
+        if (!observationInstance) {
+            logger.warn(`[V2-Observer] Observation not found | mentee_id=${mentee_id} solution_id=${solution_id}`);
+            return res.status(400).json({ message: 'Observation not found' });
+        }
+        logger.info(`[V2-Observer] Observation found | uuid_id=${observationInstance.get('uuid_id')}`);
+
+        // If already initialized, return existing observation_id — skip ML Service call and DB update
+        const existing_observation_id = observationInstance.get('observation_id');
+        if (existing_observation_id && observationInstance.get('otp_verification_status') === 'verified') {
+            logger.info(`[V2-Observer] Already initialized, returning existing observation_id | observation_id=${existing_observation_id}`);
+            return res.status(200).json({
+                message: 'OTP skipped successfully',
+                observation_id: existing_observation_id
+            });
+        }
+
+        const mentorEntityData = await getEntitiesForMentor(req);
+        if (!mentorEntityData) {
+            logger.warn(`[V2-Observer] ML Service returned no data | solution_id=${solution_id}`);
+            return res.status(400).json({ message: 'Mentee Not Found with the respective solution Id' });
+        }
+        const observation_id = mentorEntityData.data.result["_id"];
+        logger.info(`[V2-Observer] Got observation_id from ML Service | observation_id=${observation_id}`);
+
+        try {
+            await axios({
+                headers: observationServiceHeaders(req),
+                data: { data: [mentee_id] },
+                method: 'POST',
+                url: `${API_ENDPOINTS.addEntityToObservation}/${observation_id}`,
+            });
+            logger.info(`[V2-Observer] Entity added to observation | observation_id=${observation_id} mentee_id=${mentee_id}`);
+        } catch (addEntityError: any) {
+            logger.warn(`[V2-Observer] addEntity failed (non-fatal) | observation_id=${observation_id} error=${addEntityError.message}`);
+        }
+
+        await observationInstance.update({
+            otp_verification_status: 'verified',
+            observation_id: observation_id,
+            otp_verified_on: new Date()
+        });
+        logger.info(`[V2-Observer] DB updated | uuid_id=${observationInstance.get('uuid_id')} observation_id=${observation_id}`);
+
+        return res.status(200).json({
+            message: 'OTP skipped successfully',
+            observation_id: observation_id
+        });
+
+    } catch (error: any) {
+        logger.error(`[V2-Observer] Unexpected error | ${error.message}`);
+        res.status(400).json({ message: 'Error occurred while initializing observer observation' });
+    }
+}

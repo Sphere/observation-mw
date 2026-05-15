@@ -6,7 +6,7 @@ const client = new cassandra.Client({
     contactPoints: [cassandraPort],
     keyspace: 'sunbird',
     localDataCenter: 'datacenter1',
-})
+});
 const userSearchRoute = `${process.env.LEARNER_SERVICE_API_BASE}/private/user/v1/search`
 const descryptionServiceRoute = `${process.env.DECRYPTION_API_BASE}/decrypt`
 export let userSearch = async (userAttributes: any) => {
