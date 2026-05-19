@@ -37,8 +37,8 @@ const getObserverObservationList = async (menteeId: string, mentorId: string, re
                 attributes: ['uuid_id', 'type', 'status', 'observation_id', 'solution_id', 'scheduled_on', 'attempted_count'],
                 where: {
                     type: "observer",
-                    status: "active",
-                    submission_status: ""
+                    status: "active"
+                   
                 },
                 include: [{
                     model: ObservationData,
