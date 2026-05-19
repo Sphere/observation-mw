@@ -658,23 +658,13 @@ export const initializeObservationForObserver = async (req: any, res: any) => {
         }
         logger.info(`[V2-Observer] Observation found | uuid_id=${observationInstance.get('uuid_id')}`);
 
-        // If already initialized, return existing observation_id — skip ML Service call and DB update
-        const existing_observation_id = observationInstance.get('observation_id');
-        if (existing_observation_id && observationInstance.get('otp_verification_status') === 'verified') {
-            logger.info(`[V2-Observer] Already initialized, returning existing observation_id | observation_id=${existing_observation_id}`);
-            return res.status(200).json({
-                message: 'OTP skipped successfully',
-                observation_id: existing_observation_id
-            });
-        }
-
         const mentorEntityData = await getEntitiesForMentor(req);
         if (!mentorEntityData) {
             logger.warn(`[V2-Observer] ML Service returned no data | solution_id=${solution_id}`);
             return res.status(400).json({ message: 'Mentee Not Found with the respective solution Id' });
         }
         const observation_id = mentorEntityData.data.result["_id"];
-        logger.info(`[V2-Observer] Got observation_id from ML Service | observation_id=${observation_id}`);
+        logger.info(`[V2-Observer] Got observation_id from ML Service | observation_id=${observation_id} | full_result=${JSON.stringify(mentorEntityData.data.result)}`);
 
         try {
             await axios({
