@@ -1,7 +1,7 @@
 import { MentoringRelationship } from "../models/mentoringRelationshipModel";
 import { MentoringObservation } from "../models/mentoringObservationModel";
 import { ObservationData } from "../models/observationMetaModel";
-export const getObservationForMentee = async (req, res) => {
+export const getObservationForMentee = async (req: any, res: any) => {
   const { menteeId } = req.query;
   try {
     MentoringRelationship.hasMany(MentoringObservation, {
@@ -15,11 +15,11 @@ export const getObservationForMentee = async (req, res) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          attributes: ['type','status', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
           }]
         },
 
@@ -40,7 +40,7 @@ export const getObservationForMentee = async (req, res) => {
   }
 };
 
-export const getAllMenteeForMentor = async (req, res) => {
+export const getAllMenteeForMentor = async (req: any, res: any) => {
   const { mentorId } = req.query;
 
   try {
@@ -52,11 +52,12 @@ export const getAllMenteeForMentor = async (req, res) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          attributes: ['type','status', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
+          where:{"status":"active"},
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
           }]
         },
       ],
@@ -73,9 +74,10 @@ export const getAllMenteeForMentor = async (req, res) => {
     });
   }
 };
-export const getMentorMenteeDetailsFiltered = async (req, res) => {
+export const getMentorMenteeDetailsFiltered = async (req: any, res: any) => {
   try {
     const { menteeMentorDetails, filters } = req.body;
+    filters.status="active"
     const mentorMenteeFilters = Object.fromEntries(
       Object.entries(menteeMentorDetails).filter(([_key, value]) => value !== '')
     );
@@ -87,12 +89,12 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
       include: [
         {
           model: MentoringObservation,
-          attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
+          attributes: ['type','status', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
           where: filters,
           include: [{
             model: ObservationData,
             as: 'observationData',
-            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+            attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
           }]
         },
       ],
@@ -108,21 +110,24 @@ export const getMentorMenteeDetailsFiltered = async (req, res) => {
     });
   }
 }
-export const mentorObservationFilteredCount = async (req, res) => {
+export const mentorObservationFilteredCount = async (req: any, res: any) => {
   try {
     const { mentorId } = req.query;
     const filters = {
       "pending": {
         "otp_verification_status": "",
-        "submission_status": ""
+        "submission_status": "",
+        "status":"active"
       },
       "inProgress": {
         "otp_verification_status": "verified",
-        "submission_status": ""
+        "submission_status": "",
+        "status":"active"
       },
       "completed": {
         "otp_verification_status": "verified",
-        "submission_status": "submitted"
+        "submission_status": "submitted",
+        "status":"active"
       }
     }
     const filterCount = {
@@ -132,9 +137,7 @@ export const mentorObservationFilteredCount = async (req, res) => {
     }
     const filterArray = ["pending", "inProgress", "completed"]
     for (const element of filterArray) {
-
       try {
-        console.log(element)
         MentoringRelationship.hasMany(MentoringObservation, {
           foreignKey: 'mentoring_relationship_id',
         });
@@ -143,22 +146,22 @@ export const mentorObservationFilteredCount = async (req, res) => {
           include: [
             {
               model: MentoringObservation,
-              attributes: ['type', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count'],
-              where: filters[element],
+              attributes: ['type','status', 'observation_id', 'solution_id', 'otp_verification_status', 'submission_status', 'attempted_count', 'scheduled_on', 'otp_verified_on'],
+              where: filters[element as keyof typeof filters],
               include: [{
                 model: ObservationData,
                 as: 'observationData',
-                attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id']
+                attributes: ['solution_id', 'solution_name', 'competency_data', 'solution_link_id', 'duration']
               }]
             },
           ],
           where: { mentor_id: mentorId }, subQuery: false,
         })
-        const combinedMenteeData = menteeMentorObservationData.map((element) => {
+        const combinedMenteeData = menteeMentorObservationData.map((element: any) => {
           return (element as any).mentoring_observations;
         });
         const filteredDataLength = combinedMenteeData.flat().length;
-        filterCount[element] = filteredDataLength
+        filterCount[element as keyof typeof filters] = filteredDataLength
       } catch (error) {
         console.error('Error:', error);
         return res.status(500).json({
